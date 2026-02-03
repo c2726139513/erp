@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
         amount: parseFloat(amount),
         taxAmount: parseFloat(taxAmount) || 0,
         totalAmount: parseFloat(totalAmount),
-        status: status || 'DRAFT',
+        status: status || 'ISSUED',
         invoiceType: invoiceType || 'RECEIVED',
         invoiceDate: new Date(invoiceDate),
         dueDate: dueDate ? new Date(dueDate) : null,

@@ -20,7 +20,7 @@ interface Contract {
   clientId: string;
   projectId?: string;
   amount: number;
-  status: 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+  status: 'UNSIGNED' | 'SIGNED';
   contractType: 'PURCHASE' | 'SALES';
   startDate: string;
   endDate: string;
@@ -36,7 +36,7 @@ interface ContractFormData {
   clientId: string;
   projectId: string;
   amount: string;
-  status: 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+  status: 'UNSIGNED' | 'SIGNED';
   contractType: 'PURCHASE' | 'SALES';
   startDate: string;
   endDate: string;
@@ -54,6 +54,8 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
   const [searchQuery, setSearchQuery] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [showConfirmSignModal, setShowConfirmSignModal] = useState(false);
+  const [contractToSign, setContractToSign] = useState<Contract | null>(null);
 
   const [formData, setFormData] = useState<ContractFormData>({
     contractNumber: '',
@@ -61,7 +63,7 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
     clientId: '',
     projectId: '',
     amount: '',
-    status: 'DRAFT',
+    status: 'SIGNED',
     contractType,
     startDate: new Date().toISOString().split('T')[0],
     endDate: new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0],
@@ -91,11 +93,11 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
             const invoicesData = await invoicesRes.json();
             const paymentsData = await paymentsRes.json();
             
-            const invoicedAmount = invoicesData.success && invoicesData.data 
-              ? invoicesData.data.reduce((sum: number, i: any) => sum + i.totalAmount, 0)
+            const invoicedAmount = invoicesData.success && invoicesData.data
+              ? invoicesData.data.filter((i: any) => i.status === 'ISSUED').reduce((sum: number, i: any) => sum + i.totalAmount, 0)
               : 0;
-            const paidAmount = paymentsData.success && paymentsData.data 
-              ? paymentsData.data.reduce((sum: number, p: any) => sum + p.amount, 0)
+            const paidAmount = paymentsData.success && paymentsData.data
+              ? paymentsData.data.filter((p: any) => p.status === 'PAID').reduce((sum: number, p: any) => sum + p.amount, 0)
               : 0;
             
             return {
@@ -176,7 +178,7 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
           clientId: '',
           projectId: '',
           amount: '',
-          status: 'DRAFT',
+          status: 'SIGNED',
           contractType,
           startDate: new Date().toISOString().split('T')[0],
           endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -223,6 +225,34 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
     }
   };
 
+  const handleConfirmSign = (contract: Contract) => {
+    setContractToSign(contract);
+    setShowConfirmSignModal(true);
+  };
+
+  const handleSignContract = async () => {
+    if (!contractToSign) return;
+    try {
+      const res = await fetch(`/api/contracts/${contractToSign.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...contractToSign, status: 'SIGNED' }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setShowConfirmSignModal(false);
+        setContractToSign(null);
+        fetchContracts();
+        alert('合同已确认签署');
+      } else {
+        alert(data.message || '签署失败');
+      }
+    } catch (error) {
+      console.error('Failed to sign contract:', error);
+      alert('签署失败，请重试');
+    }
+  };
+
   const openNewModal = () => {
     setEditingContract(null);
     setFormData({
@@ -231,7 +261,7 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
       clientId: '',
       projectId: '',
       amount: '',
-      status: 'DRAFT',
+      status: 'SIGNED',
       contractType,
       startDate: new Date().toISOString().split('T')[0],
       endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -241,20 +271,16 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
 
   const getStatusText = (status: string) => {
     const statusMap: Record<string, string> = {
-      'DRAFT': '草稿',
-      'ACTIVE': '执行中',
-      'COMPLETED': '已完成',
-      'CANCELLED': '已取消',
+      'UNSIGNED': '未签署(预录)',
+      'SIGNED': '已签署',
     };
     return statusMap[status] || status;
   };
 
   const getStatusColor = (status: string) => {
     const colorMap: Record<string, string> = {
-      'DRAFT': 'bg-gray-100 text-gray-800',
-      'ACTIVE': 'bg-blue-100 text-blue-800',
-      'COMPLETED': 'bg-green-100 text-green-800',
-      'CANCELLED': 'bg-red-100 text-red-800',
+      'UNSIGNED': 'bg-gray-100 text-gray-800',
+      'SIGNED': 'bg-green-100 text-green-800',
     };
     return colorMap[status] || 'bg-gray-100 text-gray-800';
   };
@@ -328,6 +354,9 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
                           {contract._remainingInvoice !== undefined ? `¥${contract._remainingInvoice.toLocaleString()}` : '-'}
                         </td>
                         <td className="px-6 py-4">
+                          {contract.status === 'UNSIGNED' && (
+                            <button onClick={(e) => {e.stopPropagation(); handleConfirmSign(contract);}} className="text-green-600 hover:text-green-800 mr-3">确认签署</button>
+                          )}
                           <button onClick={(e) => {e.stopPropagation(); handleEdit(contract);}} className="text-blue-600 hover:text-blue-800 mr-3">编辑</button>
                           <button onClick={(e) => {e.stopPropagation(); handleDelete(contract.id);}} className="text-red-600 hover:text-red-800">删除</button>
                         </td>
@@ -383,10 +412,8 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">状态</label>
                       <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as any })} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                        <option value="DRAFT">草稿</option>
-                        <option value="ACTIVE">执行中</option>
-                        <option value="COMPLETED">已完成</option>
-                        <option value="CANCELLED">已取消</option>
+                        <option value="SIGNED">已签署</option>
+                        <option value="UNSIGNED">未签署(预录)</option>
                       </select>
                     </div>
                     <div></div>
@@ -409,6 +436,23 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
               </div>
             </div>
           )}
+
+          {showConfirmSignModal && contractToSign && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+                <div className="p-6">
+                  <h2 className="text-xl font-semibold mb-4">确认签署合同</h2>
+                  <p className="text-gray-600 mb-4">
+                    确定要将合同 <strong>{contractToSign.title}</strong> ({contractToSign.contractNumber}) 的状态从"未签署(预录)"改为"已签署"吗？
+                  </p>
+                  <div className="flex justify-end gap-3">
+                    <button onClick={() => { setShowConfirmSignModal(false); setContractToSign(null); }} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">取消</button>
+                    <button onClick={handleSignContract} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">确认签署</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {showDetailPanel && contractDetails && (
@@ -427,14 +471,14 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
               {contractDetails.invoices && contractDetails.invoices.length > 0 ? (
                 <div className="space-y-2">
                   {contractDetails.invoices.map((invoice: any) => (
-                    <div key={invoice.id} className="bg-white p-2 rounded text-sm border-l-4 border-blue-500">
-                      <div>{invoice.invoiceNumber}</div>
+                    <div key={invoice.id} className={`bg-white p-2 rounded text-sm border-l-4 ${invoice.status === 'ISSUED' ? 'border-blue-500' : 'border-gray-400'}`}>
+                      <div>{invoice.invoiceNumber} {invoice.status === 'UNISSUED' ? '(未开具)' : ''}</div>
                       <div className="text-gray-500">¥{invoice.totalAmount.toLocaleString()}</div>
                     </div>
                   ))}
-                  <div className="font-medium">已开票：¥{contractDetails.invoices.reduce((sum: number, inv: any) => sum + inv.totalAmount, 0).toLocaleString()}</div>
-                  <div className={`font-medium ${contractDetails.amount > contractDetails.invoices.reduce((sum: number, inv: any) => sum + inv.totalAmount, 0) ? 'text-red-600' : 'text-green-600'}`}>
-                    未开票：¥{(contractDetails.amount - contractDetails.invoices.reduce((sum: number, inv: any) => sum + inv.totalAmount, 0)).toLocaleString()}
+                  <div className="font-medium">已开票：¥{contractDetails.invoices.filter((inv: any) => inv.status === 'ISSUED').reduce((sum: number, inv: any) => sum + inv.totalAmount, 0).toLocaleString()}</div>
+                  <div className={`font-medium ${contractDetails.amount > contractDetails.invoices.filter((inv: any) => inv.status === 'ISSUED').reduce((sum: number, inv: any) => sum + inv.totalAmount, 0) ? 'text-red-600' : 'text-green-600'}`}>
+                    未开票：¥{(contractDetails.amount - contractDetails.invoices.filter((inv: any) => inv.status === 'ISSUED').reduce((sum: number, inv: any) => sum + inv.totalAmount, 0)).toLocaleString()}
                   </div>
                 </div>
               ) : (
@@ -446,14 +490,14 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
               {contractDetails.payments && contractDetails.payments.length > 0 ? (
                 <div className="space-y-2">
                   {contractDetails.payments.map((payment: any) => (
-                    <div key={payment.id} className={`bg-white p-2 rounded text-sm ${payment.paymentType === 'RECEIPT' ? 'border-l-4 border-green-500' : 'border-l-4 border-red-500'}`}>
-                      <div>{payment.paymentNumber}</div>
+                    <div key={payment.id} className={`bg-white p-2 rounded text-sm ${payment.status === 'PAID' ? (payment.paymentType === 'RECEIPT' ? 'border-l-4 border-green-500' : 'border-l-4 border-red-500') : 'border-l-4 border-gray-400'}`}>
+                      <div>{payment.paymentNumber} {payment.status === 'UNPAID' ? '(未支付)' : ''}</div>
                       <div className="text-gray-500">¥{payment.amount.toLocaleString()} ({payment.paymentType === 'RECEIPT' ? '收款' : '付款'})</div>
                     </div>
                   ))}
-                  <div className="font-medium">已结算：¥{contractDetails.payments.reduce((sum: number, pay: any) => sum + pay.amount, 0).toLocaleString()}</div>
-                  <div className={`font-medium ${contractDetails.amount > contractDetails.payments.reduce((sum: number, pay: any) => sum + pay.amount, 0) ? 'text-red-600' : 'text-green-600'}`}>
-                    未结算：¥{(contractDetails.amount - contractDetails.payments.reduce((sum: number, pay: any) => sum + pay.amount, 0)).toLocaleString()}
+                  <div className="font-medium">已结算：¥{contractDetails.payments.filter((pay: any) => pay.status === 'PAID').reduce((sum: number, pay: any) => sum + pay.amount, 0).toLocaleString()}</div>
+                  <div className={`font-medium ${contractDetails.amount > contractDetails.payments.filter((pay: any) => pay.status === 'PAID').reduce((sum: number, pay: any) => sum + pay.amount, 0) ? 'text-red-600' : 'text-green-600'}`}>
+                    未结算：¥{(contractDetails.amount - contractDetails.payments.filter((pay: any) => pay.status === 'PAID').reduce((sum: number, pay: any) => sum + pay.amount, 0)).toLocaleString()}
                   </div>
                 </div>
               ) : (

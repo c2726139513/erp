@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
         clientId,
         projectId: projectId || null,
         amount: parseFloat(amount),
-        status: status || 'DRAFT',
+        status: status || 'SIGNED',
         contractType: contractType || 'PURCHASE',
         startDate: new Date(startDate),
         endDate: new Date(endDate),

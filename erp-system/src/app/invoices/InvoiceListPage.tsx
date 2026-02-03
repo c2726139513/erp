@@ -27,7 +27,7 @@ interface Invoice {
   amount: number;
   taxAmount: number;
   totalAmount: number;
-  status: string;
+  status: 'UNISSUED' | 'ISSUED';
   invoiceType: 'RECEIVED' | 'ISSUED';
   invoiceDate: string;
   dueDate?: string;
@@ -52,6 +52,8 @@ export default function InvoiceListPage({ invoiceType }: { invoiceType: 'RECEIVE
   const [searchQuery, setSearchQuery] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [showConfirmIssueModal, setShowConfirmIssueModal] = useState(false);
+  const [invoiceToIssue, setInvoiceToIssue] = useState<Invoice | null>(null);
   const [formData, setFormData] = useState({
     invoiceNumber: '',
     contractId: '',
@@ -59,7 +61,7 @@ export default function InvoiceListPage({ invoiceType }: { invoiceType: 'RECEIVE
     amount: '',
     taxAmount: '0',
     totalAmount: '',
-    status: 'DRAFT' as 'DRAFT' | 'SENT' | 'PARTIAL' | 'PAID' | 'OVERDUE' | 'CANCELLED',
+    status: 'ISSUED' as 'UNISSUED' | 'ISSUED',
     invoiceType,
     invoiceDate: new Date().toISOString().split('T')[0],
     dueDate: '',
@@ -165,7 +167,7 @@ export default function InvoiceListPage({ invoiceType }: { invoiceType: 'RECEIVE
           amount: '',
           taxAmount: '0',
           totalAmount: '',
-          status: 'DRAFT',
+          status: 'ISSUED',
           invoiceType,
           invoiceDate: new Date().toISOString().split('T')[0],
           dueDate: '',
@@ -185,19 +187,16 @@ export default function InvoiceListPage({ invoiceType }: { invoiceType: 'RECEIVE
 
   const getStatusText = (status: string) => {
     const map: Record<string, string> = {
-      'DRAFT': '草稿', 'SENT': '已发送', 'PARTIAL': '部分', 'PAID': '已付', 'OVERDUE': '逾期', 'CANCELLED': '取消'
+      'UNISSUED': '未开具(预录)',
+      'ISSUED': '已开具',
     };
     return map[status] || status;
   };
 
   const getStatusColor = (status: string) => {
     const map: Record<string, string> = {
-      'DRAFT': 'bg-gray-100 text-gray-800',
-      'SENT': 'bg-blue-100 text-blue-800',
-      'PARTIAL': 'bg-yellow-100 text-yellow-800',
-      'PAID': 'bg-green-100 text-green-800',
-      'OVERDUE': 'bg-red-100 text-red-800',
-      'CANCELLED': 'bg-gray-100 text-gray-800',
+      'UNISSUED': 'bg-gray-100 text-gray-800',
+      'ISSUED': 'bg-green-100 text-green-800',
     };
     return map[status] || 'bg-gray-100 text-gray-800';
   };
@@ -237,6 +236,34 @@ export default function InvoiceListPage({ invoiceType }: { invoiceType: 'RECEIVE
     }
   };
 
+  const handleConfirmIssue = (invoice: Invoice) => {
+    setInvoiceToIssue(invoice);
+    setShowConfirmIssueModal(true);
+  };
+
+  const handleIssueInvoice = async () => {
+    if (!invoiceToIssue) return;
+    try {
+      const res = await fetch(`/api/invoices/${invoiceToIssue.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...invoiceToIssue, status: 'ISSUED' }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setShowConfirmIssueModal(false);
+        setInvoiceToIssue(null);
+        fetchInvoices();
+        alert('发票已确认开具');
+      } else {
+        alert(data.message || '开具失败');
+      }
+    } catch (error) {
+      console.error('Failed to issue invoice:', error);
+      alert('开具失败，请重试');
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="p-6">
@@ -266,7 +293,7 @@ export default function InvoiceListPage({ invoiceType }: { invoiceType: 'RECEIVE
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-72 px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <button onClick={() => { setEditingInvoice(null); setFormData({ invoiceNumber: '', contractId: '', clientId: '', amount: '', taxAmount: '0', totalAmount: '', status: 'DRAFT', invoiceType, invoiceDate: new Date().toISOString().split('T')[0], dueDate: '', description: '', notes: '' }); setShowModal(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg">
+            <button onClick={() => { setEditingInvoice(null); setFormData({ invoiceNumber: '', contractId: '', clientId: '', amount: '', taxAmount: '0', totalAmount: '', status: 'ISSUED', invoiceType, invoiceDate: new Date().toISOString().split('T')[0], dueDate: '', description: '', notes: '' }); setShowModal(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg">
               新建{invoiceType === 'ISSUED' ? '开具' : '取得'}发票
             </button>
           </div>
@@ -304,6 +331,9 @@ export default function InvoiceListPage({ invoiceType }: { invoiceType: 'RECEIVE
                       </td>
                       <td className="px-6 py-4">{inv.invoiceDate.split('T')[0]}</td>
                       <td className="px-6 py-4">
+                        {inv.status === 'UNISSUED' && (
+                          <button onClick={() => handleConfirmIssue(inv)} className="text-green-600 hover:text-green-800 mr-3">确认开具</button>
+                        )}
                         <button onClick={() => handleEdit(inv)} className="text-blue-600 hover:text-blue-800 mr-3">编辑</button>
                         <button onClick={() => handleDelete(inv.id)} className="text-red-600 hover:text-red-800">删除</button>
                       </td>
@@ -365,7 +395,8 @@ export default function InvoiceListPage({ invoiceType }: { invoiceType: 'RECEIVE
                   <div>
                     <label className="block text-sm mb-1">状态</label>
                     <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value as any })} className="w-full px-3 py-2 border rounded">
-                      <option value="DRAFT">草稿</option><option value="SENT">已发送</option><option value="PARTIAL">部分</option><option value="PAID">已付</option><option value="OVERDUE">逾期</option><option value="CANCELLED">取消</option>
+                      <option value="ISSUED">已开具</option>
+                      <option value="UNISSUED">未开具(预录)</option>
                     </select>
                   </div>
                   <div>
@@ -386,6 +417,23 @@ export default function InvoiceListPage({ invoiceType }: { invoiceType: 'RECEIVE
                   <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">{editingInvoice ? '更新' : '创建'}</button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {showConfirmIssueModal && invoiceToIssue && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg max-w-md w-full mx-4">
+              <div className="p-6">
+                <h2 className="text-xl font-semibold mb-4">确认开具发票</h2>
+                <p className="text-gray-600 mb-4">
+                  确定要将发票 <strong>{invoiceToIssue.invoiceNumber}</strong> 的状态从"未开具(预录)"改为"已开具"吗？
+                </p>
+                <div className="flex justify-end gap-3">
+                  <button onClick={() => { setShowConfirmIssueModal(false); setInvoiceToIssue(null); }} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">取消</button>
+                  <button onClick={handleIssueInvoice} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">确认开具</button>
+                </div>
+              </div>
             </div>
           </div>
         )}

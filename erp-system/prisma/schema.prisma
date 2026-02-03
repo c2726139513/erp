@@ -75,7 +75,7 @@ model Contract {
   clientId        String
   projectId       String?
   amount          Float
-  status          ContractStatus @default(DRAFT)
+  status          ContractStatus @default(SIGNED)
   contractType    ContractType @default(PURCHASE)
   startDate       DateTime
   endDate         DateTime
@@ -104,7 +104,7 @@ model Invoice {
   amount          Float
   taxAmount       Float    @default(0)
   totalAmount     Float
-  status          InvoiceStatus @default(DRAFT)
+  status          InvoiceStatus @default(ISSUED)
   invoiceType     InvoiceType @default(RECEIVED)
   invoiceDate     DateTime
   dueDate         DateTime?
@@ -127,8 +127,8 @@ model Invoice {
 
 // 收付款
 model Payment {
-  id              String   @id @default(cuid())
-  paymentNumber   String   @unique
+  id              String        @id @default(cuid())
+  paymentNumber   String        @unique
   invoiceId       String?
   contractId      String?
   clientId        String
@@ -136,6 +136,7 @@ model Payment {
   paymentType     PaymentType
   paymentMethod   PaymentMethod
   paymentDate     DateTime
+  status          PaymentStatus @default(PAID)
   bankAccount     String?
   referenceNumber String?
   notes           String?
@@ -152,13 +153,12 @@ model Payment {
   @@index([clientId])
   @@index([paymentDate])
   @@index([paymentType])
+  @@index([status])
 }
 
 enum ContractStatus {
-  DRAFT       // 草稿
-  ACTIVE      // 执行中
-  COMPLETED   // 已完成
-  CANCELLED   // 已取消
+  UNSIGNED    // 未签署(预录)
+  SIGNED      // 已签署
 }
 
 enum ContractType {
@@ -167,12 +167,8 @@ enum ContractType {
 }
 
 enum InvoiceStatus {
-  DRAFT       // 草稿
-  SENT        // 已发送
-  PARTIAL     // 部分付款
-  PAID        // 已付款
-  OVERDUE     // 已逾期
-  CANCELLED   // 已取消
+  UNISSUED    // 未开具(预录)
+  ISSUED      // 已开具
 }
 
 enum InvoiceType {
@@ -192,6 +188,11 @@ enum PaymentMethod {
   ALIPAY      // 支付宝
   WECHAT_PAY  // 微信支付
   OTHER       // 其他
+}
+
+enum PaymentStatus {
+  UNPAID      // 未支付(预录)
+  PAID        // 已支付
 }
 
 // 系统设置

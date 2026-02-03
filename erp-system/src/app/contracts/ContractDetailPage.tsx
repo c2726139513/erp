@@ -12,7 +12,7 @@ interface Contract {
   clientId: string;
   projectId?: string;
   amount: number;
-  status: 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+  status: 'UNSIGNED' | 'SIGNED';
   contractType: 'PURCHASE' | 'SALES';
   startDate: string;
   endDate: string;
@@ -83,20 +83,16 @@ export default function ContractDetailPage({ contractId, contractType }: { contr
 
   const getStatusText = (status: string) => {
     const statusMap: Record<string, string> = {
-      'DRAFT': '草稿',
-      'ACTIVE': '执行中',
-      'COMPLETED': '已完成',
-      'CANCELLED': '已取消',
+      'UNSIGNED': '未签署(预录)',
+      'SIGNED': '已签署',
     };
     return statusMap[status] || status;
   };
 
   const getStatusColor = (status: string) => {
     const colorMap: Record<string, string> = {
-      'DRAFT': 'bg-gray-100 text-gray-800',
-      'ACTIVE': 'bg-blue-100 text-blue-800',
-      'COMPLETED': 'bg-green-100 text-green-800',
-      'CANCELLED': 'bg-red-100 text-red-800',
+      'UNSIGNED': 'bg-gray-100 text-gray-800',
+      'SIGNED': 'bg-green-100 text-green-800',
     };
     return colorMap[status] || 'bg-gray-100 text-gray-800';
   };
@@ -259,7 +255,7 @@ export default function ContractDetailPage({ contractId, contractType }: { contr
                 <div className="flex justify-between items-center">
                   <span className="font-medium">已开票总额</span>
                   <span className="text-lg font-semibold">
-                    ¥{contract.invoices.reduce((sum: number, inv: any) => sum + inv.totalAmount, 0).toLocaleString()}
+                    ¥{contract.invoices.filter((inv: any) => inv.status === 'ISSUED').reduce((sum: number, inv: any) => sum + inv.totalAmount, 0).toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -303,7 +299,7 @@ export default function ContractDetailPage({ contractId, contractType }: { contr
                 <div className="flex justify-between items-center">
                   <span className="font-medium">已结算总额</span>
                   <span className="text-lg font-semibold">
-                    ¥{contract.payments.reduce((sum: number, pay: any) => sum + pay.amount, 0).toLocaleString()}
+                    ¥{contract.payments.filter((pay: any) => pay.status === 'PAID').reduce((sum: number, pay: any) => sum + pay.amount, 0).toLocaleString()}
                   </span>
                 </div>
               </div>

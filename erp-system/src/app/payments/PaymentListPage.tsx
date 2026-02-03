@@ -25,6 +25,7 @@ interface Payment {
   paymentType: 'RECEIPT' | 'EXPENSE';
   paymentMethod: string;
   paymentDate: string;
+  status: 'UNPAID' | 'PAID';
   bankAccount?: string;
   referenceNumber?: string;
   notes?: string;
@@ -48,8 +49,10 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
   const [searchQuery, setSearchQuery] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [showConfirmPayModal, setShowConfirmPayModal] = useState(false);
+  const [paymentToPay, setPaymentToPay] = useState<Payment | null>(null);
   const [formData, setFormData] = useState({
-    paymentNumber: '', invoiceId: '', contractId: '', clientId: '', amount: '', paymentType, paymentMethod: 'BANK_TRANSFER' as const, paymentDate: new Date().toISOString().split('T')[0], bankAccount: '', referenceNumber: '', notes: '',
+    paymentNumber: '', invoiceId: '', contractId: '', clientId: '', amount: '', paymentType, paymentMethod: 'BANK_TRANSFER' as const, paymentDate: new Date().toISOString().split('T')[0], status: 'PAID' as 'UNPAID' | 'PAID', bankAccount: '', referenceNumber: '', notes: '',
   });
 
   const title = paymentType === 'RECEIPT' ? '收款' : '付款';
@@ -139,6 +142,7 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
         paymentType,
         paymentMethod: 'BANK_TRANSFER',
         paymentDate: new Date().toISOString().split('T')[0],
+        status: 'PAID',
         bankAccount: '',
         referenceNumber: '',
         notes: '',
@@ -146,6 +150,34 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
       fetchPayments();
     } else {
       alert(data.message || '失败');
+    }
+  };
+
+  const handleConfirmPay = (payment: Payment) => {
+    setPaymentToPay(payment);
+    setShowConfirmPayModal(true);
+  };
+
+  const handlePayPayment = async () => {
+    if (!paymentToPay) return;
+    try {
+      const res = await fetch(`/api/payments/${paymentToPay.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...paymentToPay, status: 'PAID' }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setShowConfirmPayModal(false);
+        setPaymentToPay(null);
+        fetchPayments();
+        alert('收付款已确认支付');
+      } else {
+        alert(data.message || '支付失败');
+      }
+    } catch (error) {
+      console.error('Failed to pay payment:', error);
+      alert('支付失败，请重试');
     }
   };
 
@@ -178,7 +210,7 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-72 px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <button onClick={() => { setEditingPayment(null); setFormData({ paymentNumber: '', invoiceId: '', contractId: '', clientId: '', amount: '', paymentType, paymentMethod: 'BANK_TRANSFER', paymentDate: new Date().toISOString().split('T')[0], bankAccount: '', referenceNumber: '', notes: '' }); setShowModal(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg">
+            <button onClick={() => { setEditingPayment(null); setFormData({ paymentNumber: '', invoiceId: '', contractId: '', clientId: '', amount: '', paymentType, paymentMethod: 'BANK_TRANSFER', paymentDate: new Date().toISOString().split('T')[0], status: 'PAID', bankAccount: '', referenceNumber: '', notes: '' }); setShowModal(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg">
               新建{title}
             </button>
           </div>
@@ -199,7 +231,10 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
                   <td className="px-6 py-4">{pay.paymentMethod}</td>
                   <td className="px-6 py-4">{pay.paymentDate.split('T')[0]}</td>
                   <td className="px-6 py-4">
-                    <button onClick={() => { setEditingPayment(pay); setFormData({ paymentNumber: pay.paymentNumber, invoiceId: pay.invoiceId || '', contractId: pay.contractId || '', clientId: pay.clientId, amount: pay.amount.toString(), paymentType: pay.paymentType, paymentMethod: pay.paymentMethod as any, paymentDate: pay.paymentDate.split('T')[0], bankAccount: pay.bankAccount || '', referenceNumber: pay.referenceNumber || '', notes: pay.notes || '' }); setShowModal(true); fetchAvailableContracts(pay.clientId); }} className="text-blue-600 mr-3">编辑</button>
+                    {pay.status === 'UNPAID' && (
+                      <button onClick={() => handleConfirmPay(pay)} className="text-green-600 hover:text-green-800 mr-3">确认支付</button>
+                    )}
+                    <button onClick={() => { setEditingPayment(pay); setFormData({ paymentNumber: pay.paymentNumber, invoiceId: pay.invoiceId || '', contractId: pay.contractId || '', clientId: pay.clientId, amount: pay.amount.toString(), paymentType: pay.paymentType, paymentMethod: pay.paymentMethod as any, paymentDate: pay.paymentDate.split('T')[0], status: pay.status, bankAccount: pay.bankAccount || '', referenceNumber: pay.referenceNumber || '', notes: pay.notes || '' }); setShowModal(true); fetchAvailableContracts(pay.clientId); }} className="text-blue-600 mr-3">编辑</button>
                     <button onClick={async () => { if (confirm('确定删除?')) { await fetch(`/api/payments/${pay.id}`, { method: 'DELETE' }); fetchPayments(); } }} className="text-red-600">删除</button>
                   </td>
                 </tr>
@@ -236,6 +271,23 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
                   <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">{editingPayment ? '更新' : '创建'}</button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {showConfirmPayModal && paymentToPay && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg max-w-md w-full mx-4">
+              <div className="p-6">
+                <h2 className="text-xl font-semibold mb-4">确认支付</h2>
+                <p className="text-gray-600 mb-4">
+                  确定要将收付款 <strong>{paymentToPay.paymentNumber}</strong> 的状态从"未支付(预录)"改为"已支付"吗？
+                </p>
+                <div className="flex justify-end gap-3">
+                  <button onClick={() => { setShowConfirmPayModal(false); setPaymentToPay(null); }} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">取消</button>
+                  <button onClick={handlePayPayment} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">确认支付</button>
+                </div>
+              </div>
             </div>
           </div>
         )}

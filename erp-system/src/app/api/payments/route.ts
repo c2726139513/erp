@@ -101,6 +101,7 @@ export async function POST(request: NextRequest) {
         paymentType,
         paymentMethod,
         paymentDate: new Date(paymentDate),
+        status: 'PAID',
         bankAccount,
         referenceNumber,
         notes,
