@@ -464,7 +464,7 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
               <div><span className="text-sm text-gray-500">合同标题：</span>{contractDetails.title}</div>
               <div><span className="text-sm text-gray-500">合同金额：</span>¥{contractDetails.amount.toLocaleString()}</div>
               <div><span className="text-sm text-gray-500">项目：</span>{contractDetails.project?.name || '-'}</div>
-              <div><span className="text-sm text-gray-500">客户：</span>{contractDetails.client?.name || '-'}</div>
+              <div><span className="text-sm text-gray-500">{contractType === 'SALES' ? '客户' : '供应商'}：</span>{contractDetails.client?.name || '-'}</div>
               
               <hr className="my-4"/>
               <h3 className="font-bold mb-3">关联发票 ({contractDetails.invoices?.length || 0})</h3>
