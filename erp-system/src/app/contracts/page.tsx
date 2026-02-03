@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { Check, Edit, Trash2 } from 'lucide-react';
 
 interface Client {
   id: string;
@@ -249,15 +250,17 @@ export default function ContractsPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button
                         onClick={() => handleEdit(contract)}
-                        className="text-blue-600 hover:text-blue-800 mr-3"
+                        className="text-blue-600 hover:text-blue-800 mr-3 p-1 hover:bg-blue-50 rounded transition-colors"
+                        title="编辑"
                       >
-                        编辑
+                        <Edit size={18} />
                       </button>
                       <button
                         onClick={() => handleDelete(contract.id)}
-                        className="text-red-600 hover:text-red-800"
+                        className="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded transition-colors"
+                        title="删除"
                       >
-                        删除
+                        <Trash2 size={18} />
                       </button>
                     </td>
                   </tr>

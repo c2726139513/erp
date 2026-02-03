@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { Check, Edit, Trash2 } from 'lucide-react';
 
 interface Client { id: string; name: string; }
 interface ContractDropdownItem {
@@ -253,10 +254,28 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
                   <td className="px-6 py-4">{pay.paymentDate.split('T')[0]}</td>
                   <td className="px-6 py-4">
                     {pay.status === 'UNPAID' && (
-                      <button onClick={() => handleConfirmPay(pay)} className="text-green-600 hover:text-green-800 mr-3">确认支付</button>
+                      <button 
+                        onClick={() => handleConfirmPay(pay)} 
+                        className="text-green-600 hover:text-green-800 mr-3 p-1 hover:bg-green-50 rounded transition-colors"
+                        title="确认支付"
+                      >
+                        <Check size={18} />
+                      </button>
                     )}
-                    <button onClick={() => { setEditingPayment(pay); setFormData({ paymentNumber: pay.paymentNumber, invoiceId: pay.invoiceId || '', contractId: pay.contractId || '', clientId: pay.clientId, amount: pay.amount.toString(), paymentType: pay.paymentType, paymentMethod: pay.paymentMethod as any, paymentDate: pay.paymentDate.split('T')[0], status: pay.status, bankAccount: pay.bankAccount || '', referenceNumber: pay.referenceNumber || '', notes: pay.notes || '' }); setShowModal(true); fetchAvailableContracts(pay.clientId); }} className="text-blue-600 mr-3">编辑</button>
-                    <button onClick={async () => { if (confirm('确定删除?')) { await fetch(`/api/payments/${pay.id}`, { method: 'DELETE' }); fetchPayments(); } }} className="text-red-600">删除</button>
+                    <button 
+                      onClick={() => { setEditingPayment(pay); setFormData({ paymentNumber: pay.paymentNumber, invoiceId: pay.invoiceId || '', contractId: pay.contractId || '', clientId: pay.clientId, amount: pay.amount.toString(), paymentType: pay.paymentType, paymentMethod: pay.paymentMethod as any, paymentDate: pay.paymentDate.split('T')[0], status: pay.status, bankAccount: pay.bankAccount || '', referenceNumber: pay.referenceNumber || '', notes: pay.notes || '' }); setShowModal(true); fetchAvailableContracts(pay.clientId); }} 
+                      className="text-blue-600 hover:text-blue-800 mr-3 p-1 hover:bg-blue-50 rounded transition-colors"
+                      title="编辑"
+                    >
+                      <Edit size={18} />
+                    </button>
+                    <button 
+                      onClick={async () => { if (confirm('确定删除?')) { await fetch(`/api/payments/${pay.id}`, { method: 'DELETE' }); fetchPayments(); } }} 
+                      className="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded transition-colors"
+                      title="删除"
+                    >
+                      <Trash2 size={18} />
+                    </button>
                   </td>
                 </tr>
               ))}

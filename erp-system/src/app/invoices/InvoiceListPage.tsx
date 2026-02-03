@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { Check, Edit, Trash2 } from 'lucide-react';
 
 interface Client {
   id: string;
@@ -332,10 +333,28 @@ export default function InvoiceListPage({ invoiceType }: { invoiceType: 'RECEIVE
                       <td className="px-6 py-4">{inv.invoiceDate.split('T')[0]}</td>
                       <td className="px-6 py-4">
                         {inv.status === 'UNISSUED' && (
-                          <button onClick={() => handleConfirmIssue(inv)} className="text-green-600 hover:text-green-800 mr-3">确认开具</button>
+                          <button 
+                            onClick={() => handleConfirmIssue(inv)} 
+                            className="text-green-600 hover:text-green-800 mr-3 p-1 hover:bg-green-50 rounded transition-colors"
+                            title="确认开具"
+                          >
+                            <Check size={18} />
+                          </button>
                         )}
-                        <button onClick={() => handleEdit(inv)} className="text-blue-600 hover:text-blue-800 mr-3">编辑</button>
-                        <button onClick={() => handleDelete(inv.id)} className="text-red-600 hover:text-red-800">删除</button>
+                        <button 
+                          onClick={() => handleEdit(inv)} 
+                          className="text-blue-600 hover:text-blue-800 mr-3 p-1 hover:bg-blue-50 rounded transition-colors"
+                          title="编辑"
+                        >
+                          <Edit size={18} />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(inv.id)} 
+                          className="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded transition-colors"
+                          title="删除"
+                        >
+                          <Trash2 size={18} />
+                        </button>
                       </td>
                     </tr>
                   ))
