@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { PERMISSIONS, PERMISSION_GROUPS } from '@/lib/permissions';
+import { Edit, Trash2 } from 'lucide-react';
 
 interface User {
   id: string;
@@ -264,15 +265,17 @@ export default function UsersPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button
                           onClick={() => handleEdit(user)}
-                          className="text-blue-600 hover:text-blue-800 mr-3"
+                          className="text-blue-600 hover:text-blue-800 mr-3 p-1 hover:bg-blue-50 rounded transition-colors"
+                          title="编辑"
                         >
-                          编辑
+                          <Edit size={18} />
                         </button>
                         <button
                           onClick={() => handleDelete(user.id)}
-                          className="text-red-600 hover:text-red-800"
+                          className="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded transition-colors"
+                          title="删除"
                         >
-                          删除
+                          <Trash2 size={18} />
                         </button>
                       </td>
                     </tr>

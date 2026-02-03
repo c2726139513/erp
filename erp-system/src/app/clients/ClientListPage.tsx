@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ResponsiveTable, Column, Action } from '@/components/ResponsiveTable';
 import { MobileModal } from '@/components/MobileModal';
+import { Edit, Trash2 } from 'lucide-react';
 
 interface Client {
   id: string;
@@ -185,12 +186,14 @@ export default function ClientListPage({ clientType }: { clientType: 'CUSTOMER' 
     {
       label: '编辑',
       onClick: handleEdit,
-      className: 'bg-blue-50 text-blue-600 hover:bg-blue-100',
+      className: 'text-blue-600 hover:text-blue-800 hover:bg-blue-50',
+      icon: 'edit',
     },
     {
       label: '删除',
       onClick: (client) => handleDelete(client.id),
-      className: 'bg-red-50 text-red-600 hover:bg-red-100',
+      className: 'text-red-600 hover:text-red-800 hover:bg-red-50',
+      icon: 'delete',
     },
   ];
 

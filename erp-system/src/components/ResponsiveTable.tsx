@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
+import { Edit, Trash2 } from 'lucide-react';
 
 export interface Column<T> {
   key: string;
@@ -14,6 +15,8 @@ export interface Action<T> {
   onClick: (item: T) => void;
   className?: string;
   disabled?: (item: T) => boolean;
+  icon?: 'edit' | 'delete';
+  iconColor?: string;
 }
 
 interface ResponsiveTableProps<T> {
@@ -78,18 +81,21 @@ export function ResponsiveTable<T>({
                         {actions.map((action, index) => {
                           const isDisabled = action.disabled ? action.disabled(item) : false;
                           return (
-                            <button
-                              key={index}
-                              onClick={() => !isDisabled && action.onClick(item)}
-                              disabled={isDisabled}
-                              className={`px-3 py-1.5 text-sm rounded-lg transition-colors min-h-[36px] touch-manipulation ${
-                                isDisabled
-                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                  : action.className || 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-                              }`}
-                            >
-                              {action.label}
-                            </button>
+                           <button
+                               key={index}
+                               onClick={() => !isDisabled && action.onClick(item)}
+                               disabled={isDisabled}
+                               className={`p-1 rounded-lg transition-colors min-h-[36px] touch-manipulation ${
+                                 isDisabled
+                                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                   : action.className || 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                               }`}
+                               title={action.label}
+                             >
+                               {action.icon === 'edit' && <Edit size={18} />}
+                               {action.icon === 'delete' && <Trash2 size={18} />}
+                               {!action.icon && action.label}
+                             </button>
                           );
                         })}
                       </div>
@@ -124,13 +130,16 @@ export function ResponsiveTable<T>({
                       key={index}
                       onClick={() => !isDisabled && action.onClick(item)}
                       disabled={isDisabled}
-                      className={`flex-1 min-w-[100px] px-4 py-2 text-sm rounded-lg transition-colors min-h-[44px] touch-manipulation ${
+                      className={`flex-1 min-w-[100px] px-4 py-2 text-sm rounded-lg transition-colors min-h-[44px] touch-manipulation flex items-center justify-center gap-2 ${
                         isDisabled
                           ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                           : action.className || 'bg-blue-600 text-white hover:bg-blue-700'
                       }`}
+                      title={action.label}
                     >
-                      {action.label}
+                      {action.icon === 'edit' && <Edit size={18} />}
+                      {action.icon === 'delete' && <Trash2 size={18} />}
+                      {!action.icon && action.label}
                     </button>
                   );
                 })}
