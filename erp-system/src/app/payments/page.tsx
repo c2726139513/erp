@@ -29,6 +29,7 @@ interface Payment {
   paymentType: 'RECEIPT' | 'EXPENSE';
   paymentMethod: 'CASH' | 'BANK_TRANSFER' | 'CHECK' | 'ALIPAY' | 'WECHAT_PAY' | 'OTHER';
   paymentDate: string;
+  status: 'UNPAID' | 'PAID';
   bankAccount?: string;
   referenceNumber?: string;
   notes?: string;
@@ -46,6 +47,7 @@ interface PaymentFormData {
   paymentType: 'RECEIPT' | 'EXPENSE';
   paymentMethod: 'CASH' | 'BANK_TRANSFER' | 'CHECK' | 'ALIPAY' | 'WECHAT_PAY' | 'OTHER';
   paymentDate: string;
+  status: 'UNPAID' | 'PAID';
   bankAccount: string;
   referenceNumber: string;
   notes: string;
@@ -68,6 +70,7 @@ export default function PaymentsPage() {
     paymentType: 'RECEIPT',
     paymentMethod: 'BANK_TRANSFER',
     paymentDate: new Date().toISOString().split('T')[0],
+    status: 'PAID',
     bankAccount: '',
     referenceNumber: '',
     notes: '',
@@ -149,6 +152,7 @@ export default function PaymentsPage() {
         paymentType: formData.paymentType,
         paymentMethod: formData.paymentMethod,
         paymentDate: new Date(formData.paymentDate).toISOString(),
+        status: formData.status,
       };
       const res = await fetch(url, {
         method: editingPayment ? 'PUT' : 'POST',
@@ -168,6 +172,7 @@ export default function PaymentsPage() {
           paymentType: 'RECEIPT' as const,
           paymentMethod: 'BANK_TRANSFER' as const,
           paymentDate: new Date().toISOString().split('T')[0],
+          status: 'PAID',
           bankAccount: '',
           referenceNumber: '',
           notes: '',
@@ -193,6 +198,7 @@ export default function PaymentsPage() {
       paymentType: payment.paymentType,
       paymentMethod: payment.paymentMethod,
       paymentDate: payment.paymentDate.split('T')[0],
+      status: payment.status,
       bankAccount: payment.bankAccount || '',
       referenceNumber: payment.referenceNumber || '',
       notes: payment.notes || '',
@@ -227,6 +233,7 @@ export default function PaymentsPage() {
       paymentType: filterType === 'EXPENSE' ? 'EXPENSE' : 'RECEIPT' as const,
       paymentMethod: 'BANK_TRANSFER' as const,
       paymentDate: new Date().toISOString().split('T')[0],
+      status: 'PAID',
       bankAccount: '',
       referenceNumber: '',
       notes: '',
@@ -256,6 +263,22 @@ export default function PaymentsPage() {
 
   const getTypeColor = (type: string) => {
     return type === 'RECEIPT' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+  };
+
+  const getStatusText = (status: string) => {
+    const statusMap: Record<string, string> = {
+      'UNPAID': '未支付(预录)',
+      'PAID': '已支付',
+    };
+    return statusMap[status] || status;
+  };
+
+  const getStatusColor = (status: string) => {
+    const colorMap: Record<string, string> = {
+      'UNPAID': 'bg-gray-100 text-gray-800',
+      'PAID': 'bg-green-100 text-green-800',
+    };
+    return colorMap[status] || 'bg-gray-100 text-gray-800';
   };
 
   const filteredPayments = payments.filter((p) => {
@@ -322,6 +345,7 @@ export default function PaymentsPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">发票</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">类型</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">金额</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">支付方式</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">日期</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
@@ -335,36 +359,41 @@ export default function PaymentsPage() {
                   </td>
                 </tr>
               ) : (
-                filteredPayments.map((payment) => (
-                  <tr key={payment.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">{payment.paymentNumber}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{payment.client?.name || '-'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{payment.contract?.title || '-'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{payment.invoice?.invoiceNumber || '-'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getTypeColor(payment.paymentType)}`}>
-                        {getPaymentTypeText(payment.paymentType)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">¥{payment.amount.toLocaleString()}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{getPaymentMethodText(payment.paymentMethod)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{payment.paymentDate.split('T')[0]}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => handleEdit(payment)}
-                        className="text-blue-600 hover:text-blue-800 mr-3"
-                      >
-                        编辑
-                      </button>
-                      <button
-                        onClick={() => handleDelete(payment.id)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        删除
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                 filteredPayments.map((payment) => (
+                   <tr key={payment.id} className="hover:bg-gray-50">
+                     <td className="px-6 py-4 whitespace-nowrap">{payment.paymentNumber}</td>
+                     <td className="px-6 py-4 whitespace-nowrap">{payment.client?.name || '-'}</td>
+                     <td className="px-6 py-4 whitespace-nowrap">{payment.contract?.title || '-'}</td>
+                     <td className="px-6 py-4 whitespace-nowrap">{payment.invoice?.invoiceNumber || '-'}</td>
+                     <td className="px-6 py-4 whitespace-nowrap">
+                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${getTypeColor(payment.paymentType)}`}>
+                         {getPaymentTypeText(payment.paymentType)}
+                       </span>
+                     </td>
+                     <td className="px-6 py-4 whitespace-nowrap">¥{payment.amount.toLocaleString()}</td>
+                     <td className="px-6 py-4 whitespace-nowrap">
+                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(payment.status)}`}>
+                         {getStatusText(payment.status)}
+                       </span>
+                     </td>
+                     <td className="px-6 py-4 whitespace-nowrap">{getPaymentMethodText(payment.paymentMethod)}</td>
+                     <td className="px-6 py-4 whitespace-nowrap">{payment.paymentDate.split('T')[0]}</td>
+                     <td className="px-6 py-4 whitespace-nowrap">
+                       <button
+                         onClick={() => handleEdit(payment)}
+                         className="text-blue-600 hover:text-blue-800 mr-3"
+                       >
+                         编辑
+                       </button>
+                       <button
+                         onClick={() => handleDelete(payment.id)}
+                         className="text-red-600 hover:text-red-800"
+                       >
+                         删除
+                       </button>
+                     </td>
+                   </tr>
+                 ))
               )}
             </tbody>
           </table>
@@ -414,40 +443,53 @@ export default function PaymentsPage() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    收付款类型 <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    required
-                    value={formData.paymentType}
-                    onChange={(e) => setFormData({ ...formData, paymentType: e.target.value as any })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="RECEIPT">收款</option>
-                    <option value="EXPENSE">付款</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    支付方式 <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    required
-                    value={formData.paymentMethod}
-                    onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value as any })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="CASH">现金</option>
-                    <option value="BANK_TRANSFER">银行转账</option>
-                    <option value="CHECK">支票</option>
-                    <option value="ALIPAY">支付宝</option>
-                    <option value="WECHAT_PAY">微信支付</option>
-                    <option value="OTHER">其他</option>
-                  </select>
-                </div>
-              </div>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div>
+                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                     收付款类型 <span className="text-red-500">*</span>
+                   </label>
+                   <select
+                     required
+                     value={formData.paymentType}
+                     onChange={(e) => setFormData({ ...formData, paymentType: e.target.value as any })}
+                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   >
+                     <option value="RECEIPT">收款</option>
+                     <option value="EXPENSE">付款</option>
+                   </select>
+                 </div>
+                 <div>
+                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                     支付方式 <span className="text-red-500">*</span>
+                   </label>
+                   <select
+                     required
+                     value={formData.paymentMethod}
+                     onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value as any })}
+                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   >
+                     <option value="CASH">现金</option>
+                     <option value="BANK_TRANSFER">银行转账</option>
+                     <option value="CHECK">支票</option>
+                     <option value="ALIPAY">支付宝</option>
+                     <option value="WECHAT_PAY">微信支付</option>
+                     <option value="OTHER">其他</option>
+                   </select>
+                 </div>
+               </div>
+               <div>
+                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                   状态
+                 </label>
+                 <select
+                   value={formData.status}
+                   onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                 >
+                   <option value="PAID">已支付</option>
+                   <option value="UNPAID">未支付(预录)</option>
+                 </select>
+               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">

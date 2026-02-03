@@ -22,7 +22,7 @@ interface Invoice {
   amount: number;
   taxAmount: number;
   totalAmount: number;
-  status: 'DRAFT' | 'SENT' | 'PARTIAL' | 'PAID' | 'OVERDUE' | 'CANCELLED';
+  status: 'UNISSUED' | 'ISSUED';
   invoiceType: 'RECEIVED' | 'ISSUED';
   invoiceDate: string;
   dueDate?: string;
@@ -39,7 +39,7 @@ interface InvoiceFormData {
   amount: string;
   taxAmount: string;
   totalAmount: string;
-  status: 'DRAFT' | 'SENT' | 'PARTIAL' | 'PAID' | 'OVERDUE' | 'CANCELLED';
+  status: 'UNISSUED' | 'ISSUED';
   invoiceType: 'RECEIVED' | 'ISSUED';
   invoiceDate: string;
   dueDate: string;
@@ -60,7 +60,7 @@ export default function InvoicesPage() {
     amount: '',
     taxAmount: '0',
     totalAmount: '',
-    status: 'DRAFT',
+    status: 'ISSUED',
     invoiceType: 'RECEIVED',
     invoiceDate: new Date().toISOString().split('T')[0],
     dueDate: '',
@@ -154,7 +154,7 @@ export default function InvoicesPage() {
           amount: '',
           taxAmount: '0',
           totalAmount: '',
-          status: 'DRAFT' as const,
+          status: 'ISSUED' as const,
           invoiceType: 'RECEIVED' as const,
           invoiceDate: new Date().toISOString().split('T')[0],
           dueDate: '',
@@ -215,7 +215,7 @@ export default function InvoicesPage() {
       amount: '',
       taxAmount: '0',
       totalAmount: '',
-      status: 'DRAFT' as const,
+      status: 'ISSUED' as const,
       invoiceType: 'RECEIVED' as const,
       invoiceDate: new Date().toISOString().split('T')[0],
       dueDate: '',
@@ -227,24 +227,16 @@ export default function InvoicesPage() {
 
   const getStatusText = (status: string) => {
     const statusMap: Record<string, string> = {
-      'DRAFT': '草稿',
-      'SENT': '已发送',
-      'PARTIAL': '部分付款',
-      'PAID': '已付款',
-      'OVERDUE': '已逾期',
-      'CANCELLED': '已取消',
+      'UNISSUED': '未开具(预录)',
+      'ISSUED': '已开具',
     };
     return statusMap[status] || status;
   };
 
   const getStatusColor = (status: string) => {
     const colorMap: Record<string, string> = {
-      'DRAFT': 'bg-gray-100 text-gray-800',
-      'SENT': 'bg-blue-100 text-blue-800',
-      'PARTIAL': 'bg-yellow-100 text-yellow-800',
-      'PAID': 'bg-green-100 text-green-800',
-      'OVERDUE': 'bg-red-100 text-red-800',
-      'CANCELLED': 'bg-gray-100 text-gray-800',
+      'UNISSUED': 'bg-gray-100 text-gray-800',
+      'ISSUED': 'bg-green-100 text-green-800',
     };
     return colorMap[status] || 'bg-gray-100 text-gray-800';
   };
@@ -474,12 +466,8 @@ export default function InvoicesPage() {
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="DRAFT">草稿</option>
-                    <option value="SENT">已发送</option>
-                    <option value="PARTIAL">部分付款</option>
-                    <option value="PAID">已付款</option>
-                    <option value="OVERDUE">已逾期</option>
-                    <option value="CANCELLED">已取消</option>
+                    <option value="ISSUED">已开具</option>
+                    <option value="UNISSUED">未开具(预录)</option>
                   </select>
                 </div>
                 <div>

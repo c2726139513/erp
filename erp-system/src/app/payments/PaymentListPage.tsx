@@ -181,6 +181,22 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
     }
   };
 
+  const getStatusText = (status: string) => {
+    const statusMap: Record<string, string> = {
+      'UNPAID': '未支付(预录)',
+      'PAID': '已支付',
+    };
+    return statusMap[status] || status;
+  };
+
+  const getStatusColor = (status: string) => {
+    const colorMap: Record<string, string> = {
+      'UNPAID': 'bg-gray-100 text-gray-800',
+      'PAID': 'bg-green-100 text-green-800',
+    };
+    return colorMap[status] || 'bg-gray-100 text-gray-800';
+  };
+
   return (
     <DashboardLayout>
       <div className="p-6">
@@ -218,7 +234,7 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
         <div className="bg-white rounded-lg shadow">
           <table className="w-full">
             <thead className="bg-gray-50">
-              <tr><th className="px-6 py-3 text-left">单号</th><th className="px-6 py-3 text-left">{paymentType === 'RECEIPT' ? '客户' : '供应商'}</th><th className="px-6 py-3 text-left">合同</th><th className="px-6 py-3 text-left">发票</th><th className="px-6 py-3 text-left">金额</th><th className="px-6 py-3 text-left">支付方式</th><th className="px-6 py-3 text-left">日期</th><th className="px-6 py-3 text-left">操作</th></tr>
+              <tr><th className="px-6 py-3 text-left">单号</th><th className="px-6 py-3 text-left">{paymentType === 'RECEIPT' ? '客户' : '供应商'}</th><th className="px-6 py-3 text-left">合同</th><th className="px-6 py-3 text-left">发票</th><th className="px-6 py-3 text-left">金额</th><th className="px-6 py-3 text-left">状态</th><th className="px-6 py-3 text-left">支付方式</th><th className="px-6 py-3 text-left">日期</th><th className="px-6 py-3 text-left">操作</th></tr>
             </thead>
             <tbody>
               {payments.map((pay) => (
@@ -228,6 +244,11 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
                   <td className="px-6 py-4">{pay.contract ? `${pay.contract.title}${pay.contract.project ? `(${pay.contract.project.name})` : ''}` : '-'}</td>
                   <td className="px-6 py-4">{pay.invoice?.invoiceNumber || '-'}</td>
                   <td className="px-6 py-4">¥{pay.amount.toLocaleString()}</td>
+                  <td className="px-6 py-4">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(pay.status)}`}>
+                      {getStatusText(pay.status)}
+                    </span>
+                  </td>
                   <td className="px-6 py-4">{pay.paymentMethod}</td>
                   <td className="px-6 py-4">{pay.paymentDate.split('T')[0]}</td>
                   <td className="px-6 py-4">
@@ -261,6 +282,7 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
                   <div><label className="block text-sm mb-1">关联发票</label><select value={formData.invoiceId} onChange={e => setFormData({ ...formData, invoiceId: e.target.value })} className="w-full px-3 py-2 border rounded"><option value="">无</option>{invoices.map(i => <option key={i.id} value={i.id}>{i.invoiceNumber}</option>)}</select></div>
                 </div>
                 <div><label className="block text-sm mb-1">支付方式 *</label><select required value={formData.paymentMethod} onChange={e => setFormData({ ...formData, paymentMethod: e.target.value as any })} className="w-full px-3 py-2 border rounded"><option value="CASH">现金</option><option value="BANK_TRANSFER">银行</option><option value="CHECK">支票</option><option value="ALIPAY">支付宝</option><option value="WECHAT_PAY">微信</option><option value="OTHER">其他</option></select></div>
+                <div><label className="block text-sm mb-1">状态</label><select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value as any })} className="w-full px-3 py-2 border rounded"><option value="PAID">已支付</option><option value="UNPAID">未支付(预录)</option></select></div>
                 <div className="grid grid-cols-2 gap-4">
                   <div><label className="block text-sm mb-1">日期 *</label><input type="date" required value={formData.paymentDate} onChange={e => setFormData({ ...formData, paymentDate: e.target.value })} className="w-full px-3 py-2 border rounded" /></div>
                   <div><label className="block text-sm mb-1">银行账号</label><input type="text" value={formData.bankAccount} onChange={e => setFormData({ ...formData, bankAccount: e.target.value })} className="w-full px-3 py-2 border rounded" /></div>

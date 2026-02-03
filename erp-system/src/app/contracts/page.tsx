@@ -14,7 +14,7 @@ interface Contract {
   title: string;
   clientId: string;
   amount: number;
-  status: 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+  status: 'UNSIGNED' | 'SIGNED';
   contractType: 'PURCHASE' | 'SALES';
   startDate: string;
   endDate: string;
@@ -26,7 +26,7 @@ interface ContractFormData {
   title: string;
   clientId: string;
   amount: string;
-  status: 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+  status: 'UNSIGNED' | 'SIGNED';
   contractType: 'PURCHASE' | 'SALES';
   startDate: string;
   endDate: string;
@@ -42,7 +42,7 @@ export default function ContractsPage() {
     title: '',
     clientId: '',
     amount: '',
-    status: 'DRAFT',
+    status: 'SIGNED',
     contractType: 'PURCHASE',
     startDate: new Date().toISOString().split('T')[0],
     endDate: new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0],
@@ -102,7 +102,7 @@ export default function ContractsPage() {
           title: '',
           clientId: '',
           amount: '',
-          status: 'DRAFT' as const,
+          status: 'SIGNED' as const,
           contractType: 'PURCHASE' as const,
           startDate: new Date().toISOString().split('T')[0],
           endDate: new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0],
@@ -155,7 +155,7 @@ export default function ContractsPage() {
       title: '',
       clientId: '',
       amount: '',
-      status: 'DRAFT' as const,
+      status: 'SIGNED' as const,
       contractType: 'PURCHASE' as const,
       startDate: new Date().toISOString().split('T')[0],
       endDate: new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0],
@@ -165,20 +165,16 @@ export default function ContractsPage() {
 
   const getStatusText = (status: string) => {
     const statusMap: Record<string, string> = {
-      'DRAFT': '草稿',
-      'ACTIVE': '执行中',
-      'COMPLETED': '已完成',
-      'CANCELLED': '已取消',
+      'UNSIGNED': '未签署(预录)',
+      'SIGNED': '已签署',
     };
     return statusMap[status] || status;
   };
 
   const getStatusColor = (status: string) => {
     const colorMap: Record<string, string> = {
-      'DRAFT': 'bg-gray-100 text-gray-800',
-      'ACTIVE': 'bg-blue-100 text-blue-800',
-      'COMPLETED': 'bg-green-100 text-green-800',
-      'CANCELLED': 'bg-red-100 text-red-800',
+      'UNSIGNED': 'bg-gray-100 text-gray-800',
+      'SIGNED': 'bg-green-100 text-green-800',
     };
     return colorMap[status] || 'bg-gray-100 text-gray-800';
   };
@@ -372,10 +368,8 @@ export default function ContractsPage() {
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="DRAFT">草稿</option>
-                    <option value="ACTIVE">执行中</option>
-                    <option value="COMPLETED">已完成</option>
-                    <option value="CANCELLED">已取消</option>
+                    <option value="SIGNED">已签署</option>
+                    <option value="UNSIGNED">未签署(预录)</option>
                   </select>
                 </div>
                 <div></div>
