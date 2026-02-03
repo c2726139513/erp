@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+  /* Navigation sidebar adjustments */
+  nav.bg-gray-900 {
+    width: 100% !important;
+    min-height: auto !important;
+    padding: 0.5rem !important;
+  }

@@ -1,0 +1,204 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 项目
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  status      ProjectStatus @default(PLANNING)
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  contracts   Contract[]
+
+  @@index([status])
+}
+
+enum ProjectStatus {
+  PLANNING     // 筹划中
+  IN_PROGRESS  // 进行中
+  PAUSED       // 已暂停
+  COMPLETED    // 已完成
+  CANCELLED    // 已取消
+}
+
+// 用户
+model User {
+  id          String   @id @default(cuid())
+  username    String   @unique
+  password    String
+  permissions String[] @default([])
+  isAdmin     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// 客户信息
+model Client {
+  id          String   @id @default(cuid())
+  name        String
+  contactName String?
+  phone       String?
+  email       String?
+  address     String?
+  clientType  ClientType @default(CUSTOMER)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  contracts   Contract[]
+  invoices    Invoice[]
+  payments    Payment[]
+}
+
+enum ClientType {
+  CUSTOMER  // 客户
+  SUPPLIER // 供应商
+}
+
+// 合同
+model Contract {
+  id              String   @id @default(cuid())
+  contractNumber  String   @unique
+  title           String
+  clientId        String
+  projectId       String?
+  amount          Float
+  status          ContractStatus @default(DRAFT)
+  contractType    ContractType @default(PURCHASE)
+  startDate       DateTime
+  endDate         DateTime
+  description     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  project         Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  invoices        Invoice[]
+  payments        Payment[]
+
+  @@index([contractNumber])
+  @@index([clientId])
+  @@index([projectId])
+  @@index([status])
+  @@index([contractType])
+}
+
+// 发票
+model Invoice {
+  id              String   @id @default(cuid())
+  invoiceNumber   String   @unique
+  contractId      String?
+  clientId        String
+  amount          Float
+  taxAmount       Float    @default(0)
+  totalAmount     Float
+  status          InvoiceStatus @default(DRAFT)
+  invoiceType     InvoiceType @default(RECEIVED)
+  invoiceDate     DateTime
+  dueDate         DateTime?
+  description     String?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  contract        Contract? @relation(fields: [contractId], references: [id])
+  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  payments        Payment[]
+
+  @@index([invoiceNumber])
+  @@index([contractId])
+  @@index([clientId])
+  @@index([status])
+  @@index([invoiceDate])
+  @@index([invoiceType])
+}
+
+// 收付款
+model Payment {
+  id              String   @id @default(cuid())
+  paymentNumber   String   @unique
+  invoiceId       String?
+  contractId      String?
+  clientId        String
+  amount          Float
+  paymentType     PaymentType
+  paymentMethod   PaymentMethod
+  paymentDate     DateTime
+  bankAccount     String?
+  referenceNumber String?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  invoice         Invoice? @relation(fields: [invoiceId], references: [id])
+  contract        Contract? @relation(fields: [contractId], references: [id])
+  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([paymentNumber])
+  @@index([invoiceId])
+  @@index([contractId])
+  @@index([clientId])
+  @@index([paymentDate])
+  @@index([paymentType])
+}
+
+enum ContractStatus {
+  DRAFT       // 草稿
+  ACTIVE      // 执行中
+  COMPLETED   // 已完成
+  CANCELLED   // 已取消
+}
+
+enum ContractType {
+  PURCHASE  // 采购合同
+  SALES    // 销售合同
+}
+
+enum InvoiceStatus {
+  DRAFT       // 草稿
+  SENT        // 已发送
+  PARTIAL     // 部分付款
+  PAID        // 已付款
+  OVERDUE     // 已逾期
+  CANCELLED   // 已取消
+}
+
+enum InvoiceType {
+  RECEIVED  // 取得发票（采购）
+  ISSUED    // 开具发票（销售）
+}
+
+enum PaymentType {
+  RECEIPT     // 收款
+  EXPENSE     // 付款
+}
+
+enum PaymentMethod {
+  CASH        // 现金
+  BANK_TRANSFER // 银行转账
+  CHECK       // 支票
+  ALIPAY      // 支付宝
+  WECHAT_PAY  // 微信支付
+  OTHER       // 其他
+}
+
+// 系统设置
+model SystemSettings {
+  id          String   @id @default(cuid())
+  companyName String   @default("我的公司")
+  logoUrl     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
