@@ -443,132 +443,132 @@ export default function PaymentsPage() {
                   />
                 </div>
               </div>
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                     收付款类型 <span className="text-red-500">*</span>
-                   </label>
-                   <select
-                     required
-                     value={formData.paymentType}
-                     onChange={(e) => setFormData({ ...formData, paymentType: e.target.value as any })}
-                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                   >
-                     <option value="RECEIPT">收款</option>
-                     <option value="EXPENSE">付款</option>
-                   </select>
-                 </div>
-                 <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                     支付方式 <span className="text-red-500">*</span>
-                   </label>
-                   <select
-                     required
-                     value={formData.paymentMethod}
-                     onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value as any })}
-                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                   >
-                     <option value="CASH">现金</option>
-                     <option value="BANK_TRANSFER">银行转账</option>
-                     <option value="CHECK">支票</option>
-                     <option value="ALIPAY">支付宝</option>
-                     <option value="WECHAT_PAY">微信支付</option>
-                     <option value="OTHER">其他</option>
-                   </select>
-                 </div>
-               </div>
-               <div>
-                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                   状态
-                 </label>
-                 <select
-                   value={formData.status}
-                   onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                 >
-                   <option value="PAID">已支付</option>
-                   <option value="UNPAID">未支付(预录)</option>
-                 </select>
-               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    客户 <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    required
-                    value={formData.clientId}
-                    onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">选择客户</option>
-                    {clients.map((client) => (
-                      <option key={client.id} value={client.id}>
-                        {client.name}
-                      </option>
-                    ))}
-                  </select>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      收付款类型 <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      required
+                      value={formData.paymentType}
+                      onChange={(e) => setFormData({ ...formData, paymentType: e.target.value as any })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="RECEIPT">收款</option>
+                      <option value="EXPENSE">付款</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      支付方式 <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      required
+                      value={formData.paymentMethod}
+                      onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value as any })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="CASH">现金</option>
+                      <option value="BANK_TRANSFER">银行转账</option>
+                      <option value="CHECK">支票</option>
+                      <option value="ALIPAY">支付宝</option>
+                      <option value="WECHAT_PAY">微信支付</option>
+                      <option value="OTHER">其他</option>
+                    </select>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    关联合同
-                  </label>
-                  <select
-                    value={formData.contractId}
-                    onChange={(e) => setFormData({ ...formData, contractId: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">无关联</option>
-                    {contracts.map((contract) => (
-                      <option key={contract.id} value={contract.id}>
-                        {contract.contractNumber} - {contract.title}
-                      </option>
-                    ))}
-                  </select>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      客户 <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      required
+                      value={formData.clientId}
+                      onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">选择客户</option>
+                      {clients.map((client) => (
+                        <option key={client.id} value={client.id}>
+                          {client.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      关联合同
+                    </label>
+                    <select
+                      value={formData.contractId}
+                      onChange={(e) => setFormData({ ...formData, contractId: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">无关联</option>
+                      {contracts.map((contract) => (
+                        <option key={contract.id} value={contract.id}>
+                          {contract.contractNumber} - {contract.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      关联发票
+                    </label>
+                    <select
+                      value={formData.invoiceId}
+                      onChange={(e) => setFormData({ ...formData, invoiceId: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">无关联</option>
+                      {invoices.map((invoice) => (
+                        <option key={invoice.id} value={invoice.id}>
+                          {invoice.invoiceNumber}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    关联发票
-                  </label>
-                  <select
-                    value={formData.invoiceId}
-                    onChange={(e) => setFormData({ ...formData, invoiceId: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">无关联</option>
-                    {invoices.map((invoice) => (
-                      <option key={invoice.id} value={invoice.id}>
-                        {invoice.invoiceNumber}
-                      </option>
-                    ))}
-                  </select>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      状态
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="PAID">已支付</option>
+                      <option value="UNPAID">未支付(预录)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      收付款日期 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={formData.paymentDate}
+                      onChange={(e) => setFormData({ ...formData, paymentDate: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      银行账号
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.bankAccount}
+                      onChange={(e) => setFormData({ ...formData, bankAccount: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    收付款日期 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={formData.paymentDate}
-                    onChange={(e) => setFormData({ ...formData, paymentDate: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    银行账号
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.bankAccount}
-                    onChange={(e) => setFormData({ ...formData, bankAccount: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -598,13 +598,13 @@ export default function PaymentsPage() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="px-4 py-2 border rounded hover:bg-gray-50"
                 >
                   取消
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
                   {editingPayment ? '更新' : '创建'}
                 </button>
