@@ -475,55 +475,142 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
         </div>
 
         {showDetailPanel && contractDetails && (
-          <div className="w-96 bg-gray-50 p-6 border-l overflow-y-auto">
-            <button onClick={() => setShowDetailPanel(false)} className="mb-4 text-gray-600 hover:text-gray-800">✕ 关闭</button>
-            <h2 className="text-xl font-bold mb-4">合同详情</h2>
-            <div className="space-y-3">
-              <div><span className="text-sm text-gray-500">合同编号：</span>{contractDetails.contractNumber}</div>
-              <div><span className="text-sm text-gray-500">合同标题：</span>{contractDetails.title}</div>
-              <div><span className="text-sm text-gray-500">合同金额：</span>¥{contractDetails.amount.toLocaleString()}</div>
-              <div><span className="text-sm text-gray-500">项目：</span>{contractDetails.project?.name || '-'}</div>
-              <div><span className="text-sm text-gray-500">{contractType === 'SALES' ? '客户' : '供应商'}：</span>{contractDetails.client?.name || '-'}</div>
-              
-              <hr className="my-4"/>
-              <h3 className="font-bold mb-3">关联发票 ({contractDetails.invoices?.length || 0})</h3>
-              {contractDetails.invoices && contractDetails.invoices.length > 0 ? (
-                <div className="space-y-2">
-                  {contractDetails.invoices.map((invoice: any) => (
-                    <div key={invoice.id} className={`bg-white p-2 rounded text-sm border-l-4 ${invoice.status === 'ISSUED' ? 'border-blue-500' : 'border-gray-400'}`}>
-                      <div>{invoice.invoiceNumber} {invoice.status === 'UNISSUED' ? '(未开具)' : ''}</div>
-                      <div className="text-gray-500">¥{invoice.totalAmount.toLocaleString()}</div>
-                    </div>
-                  ))}
-                  <div className="font-medium">已开票：¥{contractDetails.invoices.filter((inv: any) => inv.status === 'ISSUED').reduce((sum: number, inv: any) => sum + inv.totalAmount, 0).toLocaleString()}</div>
-                  <div className={`font-medium ${contractDetails.amount > contractDetails.invoices.filter((inv: any) => inv.status === 'ISSUED').reduce((sum: number, inv: any) => sum + inv.totalAmount, 0) ? 'text-red-600' : 'text-green-600'}`}>
-                    未开票：¥{(contractDetails.amount - contractDetails.invoices.filter((inv: any) => inv.status === 'ISSUED').reduce((sum: number, inv: any) => sum + inv.totalAmount, 0)).toLocaleString()}
-                  </div>
+          <>
+            {/* 遮罩层 */}
+            <div 
+              className="fixed inset-0 bg-black bg-opacity-50 z-40"
+              onClick={() => setShowDetailPanel(false)}
+            />
+            {/* 右侧抽屉 */}
+            <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-bold">合同详情</h2>
+                  <button 
+                    onClick={() => setShowDetailPanel(false)} 
+                    className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded transition-colors"
+                    title="关闭"
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
                 </div>
-              ) : (
-                <div className="text-gray-500">暂无发票</div>
-              )}
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="text-sm text-gray-500 mb-1">合同编号</div>
+                    <div className="font-medium">{contractDetails.contractNumber}</div>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="text-sm text-gray-500 mb-1">合同标题</div>
+                    <div className="font-medium">{contractDetails.title}</div>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="text-sm text-gray-500 mb-1">合同金额</div>
+                    <div className="font-medium text-lg text-blue-600">¥{contractDetails.amount.toLocaleString()}</div>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="text-sm text-gray-500 mb-1">项目</div>
+                    <div className="font-medium">{contractDetails.project?.name || '-'}</div>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="text-sm text-gray-500 mb-1">{contractType === 'SALES' ? '客户' : '供应商'}</div>
+                    <div className="font-medium">{contractDetails.client?.name || '-'}</div>
+                  </div>
+                  
+                  <div className="border-t pt-4">
+                    <h3 className="font-bold mb-3 flex items-center gap-2">
+                      <span>关联发票</span>
+                      <span className="text-sm font-normal text-gray-500">({contractDetails.invoices?.length || 0})</span>
+                    </h3>
+                    {contractDetails.invoices && contractDetails.invoices.length > 0 ? (
+                      <div className="space-y-2">
+                        {contractDetails.invoices.map((invoice: any) => (
+                          <div key={invoice.id} className={`bg-white p-3 rounded-lg border-l-4 ${invoice.status === 'ISSUED' ? 'border-blue-500' : 'border-gray-400'} shadow-sm`}>
+                            <div className="flex justify-between items-start mb-1">
+                              <div className="font-medium">{invoice.invoiceNumber}</div>
+                              <div className="text-lg font-semibold text-blue-600">¥{invoice.totalAmount.toLocaleString()}</div>
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {new Date(invoice.invoiceDate).toLocaleDateString('zh-CN')}
+                              {invoice.status === 'UNISSUED' && <span className="ml-2 text-gray-400">(未开具)</span>}
+                            </div>
+                          </div>
+                        ))}
+                        <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">已开票</span>
+                            <span className="font-semibold text-green-600">¥{contractDetails.invoices.filter((inv: any) => inv.status === 'ISSUED').reduce((sum: number, inv: any) => sum + inv.totalAmount, 0).toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between items-center mt-2">
+                            <span className="font-medium">未开票</span>
+                            <span className={`font-semibold ${contractDetails.amount > contractDetails.invoices.filter((inv: any) => inv.status === 'ISSUED').reduce((sum: number, inv: any) => sum + inv.totalAmount, 0) ? 'text-red-600' : 'text-green-600'}`}>
+                              ¥{(contractDetails.amount - contractDetails.invoices.filter((inv: any) => inv.status === 'ISSUED').reduce((sum: number, inv: any) => sum + inv.totalAmount, 0)).toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-gray-500 text-center py-4 bg-gray-50 rounded-lg">暂无发票</div>
+                    )}
+                  </div>
 
-              <hr className="my-4"/>
-              <h3 className="font-bold mb-3">关联收付款 ({contractDetails.payments?.length || 0})</h3>
-              {contractDetails.payments && contractDetails.payments.length > 0 ? (
-                <div className="space-y-2">
-                  {contractDetails.payments.map((payment: any) => (
-                    <div key={payment.id} className={`bg-white p-2 rounded text-sm ${payment.status === 'PAID' ? (payment.paymentType === 'RECEIPT' ? 'border-l-4 border-green-500' : 'border-l-4 border-red-500') : 'border-l-4 border-gray-400'}`}>
-                      <div>{payment.paymentNumber} {payment.status === 'UNPAID' ? '(未支付)' : ''}</div>
-                      <div className="text-gray-500">¥{payment.amount.toLocaleString()} ({payment.paymentType === 'RECEIPT' ? '收款' : '付款'})</div>
-                    </div>
-                  ))}
-                  <div className="font-medium">已结算：¥{contractDetails.payments.filter((pay: any) => pay.status === 'PAID').reduce((sum: number, pay: any) => sum + pay.amount, 0).toLocaleString()}</div>
-                  <div className={`font-medium ${contractDetails.amount > contractDetails.payments.filter((pay: any) => pay.status === 'PAID').reduce((sum: number, pay: any) => sum + pay.amount, 0) ? 'text-red-600' : 'text-green-600'}`}>
-                    未结算：¥{(contractDetails.amount - contractDetails.payments.filter((pay: any) => pay.status === 'PAID').reduce((sum: number, pay: any) => sum + pay.amount, 0)).toLocaleString()}
+                  <div className="border-t pt-4">
+                    <h3 className="font-bold mb-3 flex items-center gap-2">
+                      <span>关联收付款</span>
+                      <span className="text-sm font-normal text-gray-500">({contractDetails.payments?.length || 0})</span>
+                    </h3>
+                    {contractDetails.payments && contractDetails.payments.length > 0 ? (
+                      <div className="space-y-2">
+                        {contractDetails.payments.map((payment: any) => (
+                          <div key={payment.id} className={`bg-white p-3 rounded-lg border-l-4 shadow-sm ${
+                            payment.status === 'PAID' 
+                              ? (payment.paymentType === 'RECEIPT' ? 'border-green-500' : 'border-red-500') 
+                              : 'border-gray-400'
+                          }`}>
+                            <div className="flex justify-between items-start mb-1">
+                              <div className="font-medium">{payment.paymentNumber}</div>
+                              <div className={`text-lg font-semibold ${
+                                payment.paymentType === 'RECEIPT' ? 'text-green-600' : 'text-red-600'
+                              }`}>
+                                ¥{payment.amount.toLocaleString()}
+                              </div>
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {new Date(payment.paymentDate).toLocaleDateString('zh-CN')}
+                              {payment.status === 'UNPAID' && <span className="ml-2 text-gray-400">(未支付)</span>}
+                            </div>
+                            <div className="text-sm">
+                              <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                payment.paymentType === 'RECEIPT' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                              }`}>
+                                {payment.paymentType === 'RECEIPT' ? '收款' : '付款'}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                        <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">已结算</span>
+                            <span className="font-semibold text-green-600">¥{contractDetails.payments.filter((pay: any) => pay.status === 'PAID').reduce((sum: number, pay: any) => sum + pay.amount, 0).toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between items-center mt-2">
+                            <span className="font-medium">未结算</span>
+                            <span className={`font-semibold ${contractDetails.amount > contractDetails.payments.filter((pay: any) => pay.status === 'PAID').reduce((sum: number, pay: any) => sum + pay.amount, 0) ? 'text-red-600' : 'text-green-600'}`}>
+                              ¥{(contractDetails.amount - contractDetails.payments.filter((pay: any) => pay.status === 'PAID').reduce((sum: number, pay: any) => sum + pay.amount, 0)).toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-gray-500 text-center py-4 bg-gray-50 rounded-lg">暂无收付款</div>
+                    )}
                   </div>
                 </div>
-              ) : (
-                <div className="text-gray-500">暂无收付款</div>
-              )}
+              </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     </DashboardLayout>
