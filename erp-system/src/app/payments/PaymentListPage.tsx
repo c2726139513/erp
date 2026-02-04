@@ -14,7 +14,12 @@ interface ContractDropdownItem {
     name: string;
   };
 }
-interface Invoice { id: string; invoiceNumber: string; }
+interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  amount: number;
+  status: string;
+}
 
 interface Payment {
   id: string;
@@ -61,7 +66,6 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
   useEffect(() => {
     fetchPayments();
     fetchClients();
-    fetchInvoices();
   }, [paymentType, searchQuery, startDate, endDate]);
 
   const fetchPayments = async () => {
@@ -99,8 +103,16 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
     }
   };
 
-  const fetchInvoices = async () => {
-    const res = await fetch('/api/invoices');
+  const fetchInvoices = async (clientId: string) => {
+    if (!clientId) {
+      setInvoices([]);
+      return;
+    }
+    // 根据收付款类型确定发票类型
+    // 收款(RECEIPT) -> 开具发票(ISSUED)
+    // 付款(EXPENSE) -> 取得发票(RECEIVED)
+    const invoiceType = paymentType === 'RECEIPT' ? 'ISSUED' : 'RECEIVED';
+    const res = await fetch(`/api/invoices?clientId=${clientId}&invoiceType=${invoiceType}`);
     const data = await res.json();
     if (data.success) setInvoices(data.data);
   };
@@ -108,6 +120,7 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
   const handleClientChange = async (clientId: string) => {
     setFormData({ ...formData, clientId, contractId: '', invoiceId: '' });
     await fetchAvailableContracts(clientId);
+    await fetchInvoices(clientId);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -262,8 +275,8 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
                         <Check size={18} />
                       </button>
                     )}
-                    <button 
-                      onClick={() => { setEditingPayment(pay); setFormData({ paymentNumber: pay.paymentNumber, invoiceId: pay.invoiceId || '', contractId: pay.contractId || '', clientId: pay.clientId, amount: pay.amount.toString(), paymentType: pay.paymentType, paymentMethod: pay.paymentMethod as any, paymentDate: pay.paymentDate.split('T')[0], status: pay.status, bankAccount: pay.bankAccount || '', referenceNumber: pay.referenceNumber || '', notes: pay.notes || '' }); setShowModal(true); fetchAvailableContracts(pay.clientId); }} 
+                    <button
+                      onClick={() => { setEditingPayment(pay); setFormData({ paymentNumber: pay.paymentNumber, invoiceId: pay.invoiceId || '', contractId: pay.contractId || '', clientId: pay.clientId, amount: pay.amount.toString(), paymentType: pay.paymentType, paymentMethod: pay.paymentMethod as any, paymentDate: pay.paymentDate.split('T')[0], status: pay.status, bankAccount: pay.bankAccount || '', referenceNumber: pay.referenceNumber || '', notes: pay.notes || '' }); setShowModal(true); fetchAvailableContracts(pay.clientId); fetchInvoices(pay.clientId); }}
                       className="text-blue-600 hover:text-blue-800 mr-3 p-1 hover:bg-blue-50 rounded transition-colors"
                       title="编辑"
                     >
@@ -330,7 +343,7 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">无</option>
-                      {invoices.map(i => <option key={i.id} value={i.id}>{i.invoiceNumber}</option>)}
+                      {invoices.map(i => <option key={i.id} value={i.id}>{i.invoiceNumber} - ¥{i.amount.toLocaleString()}</option>)}
                     </select>
                   </div>
                 </div>

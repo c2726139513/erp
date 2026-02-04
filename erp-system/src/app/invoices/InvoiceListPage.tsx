@@ -30,7 +30,6 @@ interface Invoice {
   status: 'UNISSUED' | 'ISSUED';
   invoiceType: 'RECEIVED' | 'ISSUED';
   invoiceDate: string;
-  dueDate?: string;
   description?: string;
   notes?: string;
   client?: Client;
@@ -64,7 +63,6 @@ export default function InvoiceListPage({ invoiceType }: { invoiceType: 'RECEIVE
     status: 'ISSUED' as 'UNISSUED' | 'ISSUED',
     invoiceType,
     invoiceDate: new Date().toISOString().split('T')[0],
-    dueDate: '',
     description: '',
     notes: '',
   });
@@ -150,7 +148,6 @@ export default function InvoiceListPage({ invoiceType }: { invoiceType: 'RECEIVE
       status: formData.status,
       invoiceType: formData.invoiceType,
       invoiceDate: new Date(formData.invoiceDate).toISOString(),
-      dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : null,
       description: formData.description,
       notes: formData.notes,
     };
@@ -174,7 +171,6 @@ export default function InvoiceListPage({ invoiceType }: { invoiceType: 'RECEIVE
           status: 'ISSUED',
           invoiceType,
           invoiceDate: new Date().toISOString().split('T')[0],
-          dueDate: '',
           description: '',
           notes: '',
         });
@@ -217,10 +213,10 @@ export default function InvoiceListPage({ invoiceType }: { invoiceType: 'RECEIVE
       status: invoice.status as any,
       invoiceType: invoice.invoiceType,
       invoiceDate: invoice.invoiceDate.split('T')[0],
-      dueDate: invoice.dueDate ? invoice.dueDate.split('T')[0] : '',
       description: invoice.description || '',
       notes: invoice.notes || '',
     });
+    await fetchAvailableContracts(invoice.clientId);
     setShowModal(true);
   };
 
@@ -297,7 +293,7 @@ export default function InvoiceListPage({ invoiceType }: { invoiceType: 'RECEIVE
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-72 px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <button onClick={() => { setEditingInvoice(null); setFormData({ invoiceNumber: '', contractId: '', clientId: '', amount: '', taxAmount: '0', taxRate: '13', status: 'ISSUED', invoiceType, invoiceDate: new Date().toISOString().split('T')[0], dueDate: '', description: '', notes: '' }); setShowModal(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg">
+            <button onClick={() => { setEditingInvoice(null); setFormData({ invoiceNumber: '', contractId: '', clientId: '', amount: '', taxAmount: '0', taxRate: '13', status: 'ISSUED', invoiceType, invoiceDate: new Date().toISOString().split('T')[0], description: '', notes: '' }); setShowModal(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg">
               新建{invoiceType === 'ISSUED' ? '开具' : '取得'}发票
             </button>
           </div>
@@ -395,20 +391,22 @@ export default function InvoiceListPage({ invoiceType }: { invoiceType: 'RECEIVE
                     </select>
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm mb-1">发票编号 *</label>
-                  <input type="text" required value={formData.invoiceNumber} onChange={e => setFormData({ ...formData, invoiceNumber: e.target.value })} className="w-full px-3 py-2 border rounded" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm mb-1">发票编号 *</label>
+                    <input type="text" required value={formData.invoiceNumber} onChange={e => setFormData({ ...formData, invoiceNumber: e.target.value })} className="w-full px-3 py-2 border rounded" />
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1">金额(含税) *</label>
+                    <input type="number" required value={formData.amount} onChange={e => {
+                      const amount = e.target.value;
+                      const taxAmount = calculateTaxAmount(amount, formData.taxRate);
+                      setFormData({ ...formData, amount, taxAmount });
+                    }} className="w-full px-3 py-2 border rounded" />
+                  </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                    <div>
-                      <label className="block text-sm mb-1">金额(含税) *</label>
-                      <input type="number" required value={formData.amount} onChange={e => {
-                        const amount = e.target.value;
-                        const taxAmount = calculateTaxAmount(amount, formData.taxRate);
-                        setFormData({ ...formData, amount, taxAmount });
-                      }} className="w-full px-3 py-2 border rounded" />
-                    </div>
-                    <div>
                       <label className="block text-sm mb-1">税率(%)</label>
                       <input type="number" value={formData.taxRate} onChange={e => {
                         const taxRate = e.target.value;
@@ -421,7 +419,7 @@ export default function InvoiceListPage({ invoiceType }: { invoiceType: 'RECEIVE
                       <input type="number" readOnly value={formData.taxAmount} className="w-full px-3 py-2 border rounded bg-gray-50" />
                     </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm mb-1">状态</label>
                     <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value as any })} className="w-full px-3 py-2 border rounded">
@@ -432,10 +430,6 @@ export default function InvoiceListPage({ invoiceType }: { invoiceType: 'RECEIVE
                   <div>
                     <label className="block text-sm mb-1">开票日期 *</label>
                     <input type="date" required value={formData.invoiceDate} onChange={e => setFormData({ ...formData, invoiceDate: e.target.value })} className="w-full px-3 py-2 border rounded" />
-                  </div>
-                  <div>
-                    <label className="block text-sm mb-1">到期日期</label>
-                    <input type="date" value={formData.dueDate} onChange={e => setFormData({ ...formData, dueDate: e.target.value })} className="w-full px-3 py-2 border rounded" />
                   </div>
                 </div>
                 <div>

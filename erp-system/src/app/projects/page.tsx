@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, Eye } from 'lucide-react';
 
 interface Contract {
   id: string;
@@ -243,15 +243,22 @@ export default function ProjectsPage() {
                       <td className="px-6 py-4">{project.startDate ? project.startDate.split('T')[0] : '-'}</td>
                       <td className="px-6 py-4">{project.endDate ? project.endDate.split('T')[0] : '-'}</td>
                       <td className="px-6 py-4">
-                        <button 
-                          onClick={() => handleEdit(project)} 
+                        <button
+                          onClick={() => handleView(project)}
+                          className="text-gray-600 hover:text-gray-800 mr-3 p-1 hover:bg-gray-50 rounded transition-colors"
+                          title="查看详情"
+                        >
+                          <Eye size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleEdit(project)}
                           className="text-blue-600 hover:text-blue-800 mr-3 p-1 hover:bg-blue-50 rounded transition-colors"
                           title="编辑"
                         >
                           <Edit size={18} />
                         </button>
-                        <button 
-                          onClick={() => handleDelete(project.id)} 
+                        <button
+                          onClick={() => handleDelete(project.id)}
                           className="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded transition-colors"
                           title="删除"
                         >

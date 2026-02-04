@@ -106,7 +106,6 @@ model Invoice {
   status          InvoiceStatus @default(ISSUED)
   invoiceType     InvoiceType @default(RECEIVED)
   invoiceDate     DateTime
-  dueDate         DateTime?
   description     String?
   notes           String?
   createdAt       DateTime @default(now())

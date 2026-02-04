@@ -42,7 +42,6 @@ export async function PUT(
       status,
       invoiceType,
       invoiceDate,
-      dueDate,
       description,
       notes,
     } = body;
@@ -59,7 +58,6 @@ export async function PUT(
         status,
         invoiceType,
         invoiceDate: new Date(invoiceDate),
-        dueDate: dueDate ? new Date(dueDate) : null,
         description,
         notes,
       },

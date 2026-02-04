@@ -81,7 +81,6 @@ export async function POST(request: NextRequest) {
       status,
       invoiceType,
       invoiceDate,
-      dueDate,
       description,
       notes,
     } = body;
@@ -100,7 +99,6 @@ export async function POST(request: NextRequest) {
         status: status || 'ISSUED',
         invoiceType: invoiceType || 'RECEIVED',
         invoiceDate: new Date(invoiceDate),
-        dueDate: dueDate ? new Date(dueDate) : null,
         description,
         notes,
       },
