@@ -78,7 +78,6 @@ export async function POST(request: NextRequest) {
       clientId,
       amount,
       taxAmount,
-      totalAmount,
       status,
       invoiceType,
       invoiceDate,
@@ -87,7 +86,7 @@ export async function POST(request: NextRequest) {
       notes,
     } = body;
 
-    if (!invoiceNumber || !clientId || !amount || !totalAmount) {
+    if (!invoiceNumber || !clientId || !amount) {
       return errorResponse('缺少必填字段');
     }
 
@@ -98,7 +97,6 @@ export async function POST(request: NextRequest) {
         clientId,
         amount: parseFloat(amount),
         taxAmount: parseFloat(taxAmount) || 0,
-        totalAmount: parseFloat(totalAmount),
         status: status || 'ISSUED',
         invoiceType: invoiceType || 'RECEIVED',
         invoiceDate: new Date(invoiceDate),

@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
         const invoices = await prisma.invoice.findMany({
           where: { contractId: contract.id }
         });
-        const invoicedAmount = invoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
+        const invoicedAmount = invoices.reduce((sum, inv) => sum + inv.amount, 0);
         return {
           ...contract,
           _invoicedAmount: invoicedAmount,

@@ -95,7 +95,7 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
             const paymentsData = await paymentsRes.json();
             
             const invoicedAmount = invoicesData.success && invoicesData.data
-              ? invoicesData.data.filter((i: any) => i.status === 'ISSUED').reduce((sum: number, i: any) => sum + i.totalAmount, 0)
+              ? invoicesData.data.filter((i: any) => i.status === 'ISSUED').reduce((sum: number, i: any) => sum + i.amount, 0)
               : 0;
             const paidAmount = paymentsData.success && paymentsData.data
               ? paymentsData.data.filter((p: any) => p.status === 'PAID').reduce((sum: number, p: any) => sum + p.amount, 0)
@@ -533,7 +533,7 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
                           <div key={invoice.id} className={`bg-white p-3 rounded-lg border-l-4 ${invoice.status === 'ISSUED' ? 'border-blue-500' : 'border-gray-400'} shadow-sm`}>
                             <div className="flex justify-between items-start mb-1">
                               <div className="font-medium">{invoice.invoiceNumber}</div>
-                              <div className="text-lg font-semibold text-blue-600">¥{invoice.totalAmount.toLocaleString()}</div>
+                              <div className="text-lg font-semibold text-blue-600">¥{invoice.amount.toLocaleString()}</div>
                             </div>
                             <div className="text-sm text-gray-500">
                               {new Date(invoice.invoiceDate).toLocaleDateString('zh-CN')}
@@ -544,12 +544,12 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
                         <div className="mt-3 p-3 bg-gray-50 rounded-lg">
                           <div className="flex justify-between items-center">
                             <span className="font-medium">已开票</span>
-                            <span className="font-semibold text-green-600">¥{contractDetails.invoices.filter((inv: any) => inv.status === 'ISSUED').reduce((sum: number, inv: any) => sum + inv.totalAmount, 0).toLocaleString()}</span>
+                            <span className="font-semibold text-green-600">¥{contractDetails.invoices.filter((inv: any) => inv.status === 'ISSUED').reduce((sum: number, inv: any) => sum + inv.amount, 0).toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between items-center mt-2">
                             <span className="font-medium">未开票</span>
-                            <span className={`font-semibold ${contractDetails.amount > contractDetails.invoices.filter((inv: any) => inv.status === 'ISSUED').reduce((sum: number, inv: any) => sum + inv.totalAmount, 0) ? 'text-red-600' : 'text-green-600'}`}>
-                              ¥{(contractDetails.amount - contractDetails.invoices.filter((inv: any) => inv.status === 'ISSUED').reduce((sum: number, inv: any) => sum + inv.totalAmount, 0)).toLocaleString()}
+                            <span className={`font-semibold ${contractDetails.amount > contractDetails.invoices.filter((inv: any) => inv.status === 'ISSUED').reduce((sum: number, inv: any) => sum + inv.amount, 0) ? 'text-red-600' : 'text-green-600'}`}>
+                              ¥{(contractDetails.amount - contractDetails.invoices.filter((inv: any) => inv.status === 'ISSUED').reduce((sum: number, inv: any) => sum + inv.amount, 0)).toLocaleString()}
                             </span>
                           </div>
                         </div>

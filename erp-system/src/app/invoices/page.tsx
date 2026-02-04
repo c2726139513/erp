@@ -22,7 +22,6 @@ interface Invoice {
   clientId: string;
   amount: number;
   taxAmount: number;
-  totalAmount: number;
   status: 'UNISSUED' | 'ISSUED';
   invoiceType: 'RECEIVED' | 'ISSUED';
   invoiceDate: string;
@@ -39,7 +38,7 @@ interface InvoiceFormData {
   clientId: string;
   amount: string;
   taxAmount: string;
-  totalAmount: string;
+  taxRate: string;
   status: 'UNISSUED' | 'ISSUED';
   invoiceType: 'RECEIVED' | 'ISSUED';
   invoiceDate: string;
@@ -60,7 +59,7 @@ export default function InvoicesPage() {
     clientId: '',
     amount: '',
     taxAmount: '0',
-    totalAmount: '',
+    taxRate: '13',
     status: 'ISSUED',
     invoiceType: 'RECEIVED',
     invoiceDate: new Date().toISOString().split('T')[0],
@@ -68,6 +67,12 @@ export default function InvoicesPage() {
     description: '',
     notes: '',
   });
+
+  const calculateTaxAmount = (amount: string, rate: string) => {
+    const amt = parseFloat(amount) || 0;
+    const r = parseFloat(rate) || 0;
+    return (amt - amt / (1 + r / 100)).toFixed(2);
+  };
 
   useEffect(() => {
     fetchInvoices();
@@ -111,18 +116,13 @@ export default function InvoicesPage() {
     }
   };
 
-  const calculateTotalAmount = () => {
-    const amount = parseFloat(formData.amount) || 0;
-    const taxAmount = parseFloat(formData.taxAmount) || 0;
-    return (amount + taxAmount).toString();
-  };
-
   useEffect(() => {
+    const taxAmount = calculateTaxAmount(formData.amount, formData.taxRate);
     setFormData((prev) => ({
       ...prev,
-      totalAmount: calculateTotalAmount(),
+      taxAmount,
     }));
-  }, [formData.amount, formData.taxAmount]);
+  }, [formData.amount, formData.taxRate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,7 +134,6 @@ export default function InvoicesPage() {
         clientId: formData.clientId || undefined,
         amount: parseFloat(formData.amount) || 0,
         taxAmount: parseFloat(formData.taxAmount) || 0,
-        totalAmount: parseFloat(formData.totalAmount) || 0,
         status: formData.status,
         invoiceDate: new Date(formData.invoiceDate).toISOString(),
         dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : null,
@@ -154,7 +153,7 @@ export default function InvoicesPage() {
           clientId: '',
           amount: '',
           taxAmount: '0',
-          totalAmount: '',
+          taxRate: '13',
           status: 'ISSUED' as const,
           invoiceType: 'RECEIVED' as const,
           invoiceDate: new Date().toISOString().split('T')[0],
@@ -180,7 +179,7 @@ export default function InvoicesPage() {
       clientId: invoice.clientId,
       amount: invoice.amount.toString(),
       taxAmount: invoice.taxAmount.toString(),
-      totalAmount: invoice.totalAmount.toString(),
+      taxRate: '13',
       status: invoice.status,
       invoiceType: invoice.invoiceType,
       invoiceDate: invoice.invoiceDate.split('T')[0],
@@ -215,7 +214,7 @@ export default function InvoicesPage() {
       clientId: '',
       amount: '',
       taxAmount: '0',
-      totalAmount: '',
+      taxRate: '13',
       status: 'ISSUED' as const,
       invoiceType: 'RECEIVED' as const,
       invoiceDate: new Date().toISOString().split('T')[0],
@@ -276,16 +275,15 @@ export default function InvoicesPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">类型</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">客户</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">合同</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">金额</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">金额(含税)</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">税额</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">总金额</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">开票日期</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {invoices.length === 0 ? (
+                {invoices.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
                     暂无发票数据
@@ -302,9 +300,8 @@ export default function InvoicesPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">{invoice.client?.name || '-'}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{invoice.contract?.title || '-'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">¥{invoice.amount.toLocaleString()}</td>
+                    <td className="px-6 py-4 whitespace-nowrap font-semibold text-blue-600">¥{invoice.amount.toLocaleString()}</td>
                     <td className="px-6 py-4 whitespace-nowrap">¥{invoice.taxAmount.toLocaleString()}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">¥{invoice.totalAmount.toLocaleString()}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(invoice.status)}`}>
                         {getStatusText(invoice.status)}
@@ -418,7 +415,7 @@ export default function InvoicesPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    金额 <span className="text-red-500">*</span>
+                    金额(含税) <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -426,7 +423,28 @@ export default function InvoicesPage() {
                     step="0.01"
                     min="0"
                     value={formData.amount}
-                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                    onChange={(e) => {
+                      const amount = e.target.value;
+                      const taxAmount = calculateTaxAmount(amount, formData.taxRate);
+                      setFormData({ ...formData, amount, taxAmount });
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    税率(%)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    value={formData.taxRate}
+                    onChange={(e) => {
+                      const taxRate = e.target.value;
+                      const taxAmount = calculateTaxAmount(formData.amount, taxRate);
+                      setFormData({ ...formData, taxRate, taxAmount });
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -439,23 +457,8 @@ export default function InvoicesPage() {
                     step="0.01"
                     min="0"
                     value={formData.taxAmount}
-                    onChange={(e) => setFormData({ ...formData, taxAmount: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    总金额
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    step="0.01"
-                    min="0"
-                    value={formData.totalAmount}
-                    onChange={(e) => setFormData({ ...formData, totalAmount: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
                     readOnly
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
                   />
                 </div>
               </div>

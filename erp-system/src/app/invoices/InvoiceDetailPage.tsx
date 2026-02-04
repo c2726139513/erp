@@ -12,7 +12,6 @@ interface Invoice {
   clientId: string;
   amount: number;
   taxAmount: number;
-  totalAmount: number;
   status: string;
   invoiceType: 'RECEIVED' | 'ISSUED';
   invoiceDate: string;
@@ -177,40 +176,36 @@ export default function InvoiceDetailPage({ invoiceId, invoiceType }: { invoiceI
                 <FileText size={20} />
                 基本信息
               </h3>
-              <div className="space-y-3">
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-gray-500">发票编号</span>
-                  <span className="font-medium">{invoice.invoiceNumber}</span>
-                </div>
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-gray-500">发票金额</span>
-                  <span className="font-medium">¥{invoice.amount.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-gray-500">税额</span>
-                  <span className="font-medium">¥{invoice.taxAmount.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-gray-500">总金额</span>
-                  <span className="font-medium text-lg text-blue-600">¥{invoice.totalAmount.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-gray-500">状态</span>
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(invoice.status)}`}>
-                    {getStatusText(invoice.status)}
-                  </span>
-                </div>
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-gray-500">开票日期</span>
-                  <span className="font-medium">{new Date(invoice.invoiceDate).toLocaleDateString('zh-CN')}</span>
-                </div>
-                {invoice.dueDate && (
-                  <div className="flex justify-between py-2">
-                    <span className="text-gray-500">到期日期</span>
-                    <span className="font-medium">{new Date(invoice.dueDate).toLocaleDateString('zh-CN')}</span>
+                <div className="space-y-3">
+                  <div className="flex justify-between py-2 border-b">
+                    <span className="text-gray-500">发票编号</span>
+                    <span className="font-medium">{invoice.invoiceNumber}</span>
                   </div>
-                )}
-              </div>
+                  <div className="flex justify-between py-2 border-b">
+                    <span className="text-gray-500">金额(含税)</span>
+                    <span className="font-medium text-lg text-blue-600">¥{invoice.amount.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b">
+                    <span className="text-gray-500">税额</span>
+                    <span className="font-medium">¥{invoice.taxAmount.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b">
+                    <span className="text-gray-500">状态</span>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(invoice.status)}`}>
+                      {getStatusText(invoice.status)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b">
+                    <span className="text-gray-500">开票日期</span>
+                    <span className="font-medium">{new Date(invoice.invoiceDate).toLocaleDateString('zh-CN')}</span>
+                  </div>
+                  {invoice.dueDate && (
+                    <div className="flex justify-between py-2">
+                      <span className="text-gray-500">到期日期</span>
+                      <span className="font-medium">{new Date(invoice.dueDate).toLocaleDateString('zh-CN')}</span>
+                    </div>
+                  )}
+                </div>
             </div>
 
             <div>

@@ -103,7 +103,6 @@ model Invoice {
   clientId        String
   amount          Float
   taxAmount       Float    @default(0)
-  totalAmount     Float
   status          InvoiceStatus @default(ISSUED)
   invoiceType     InvoiceType @default(RECEIVED)
   invoiceDate     DateTime

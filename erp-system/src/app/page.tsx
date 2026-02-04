@@ -104,8 +104,8 @@ export default function HomePage() {
           invoices: {
             issued: issuedInvoicesData.length,
             received: receivedInvoicesData.length,
-            issuedAmount: issuedInvoicesData.reduce((sum: number, i: any) => sum + i.totalAmount, 0),
-            receivedAmount: receivedInvoicesData.reduce((sum: number, i: any) => sum + i.totalAmount, 0),
+            issuedAmount: issuedInvoicesData.reduce((sum: number, i: any) => sum + i.amount, 0),
+            receivedAmount: receivedInvoicesData.reduce((sum: number, i: any) => sum + i.amount, 0),
           },
           payments: {
             receipts: receiptsPaymentsData.length,
