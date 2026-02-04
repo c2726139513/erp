@@ -166,7 +166,7 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
       const res = await fetch(`/api/payments/${paymentToPay.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...paymentToPay, status: 'PAID' }),
+        body: JSON.stringify({ ...paymentToPay, status: 'PAID', paymentDate: new Date().toISOString() }),
       });
       const data = await res.json();
       if (data.success) {
@@ -293,49 +293,20 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
               <form onSubmit={handleSubmit} className="p-6 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      单号 <span className="text-red-500">*</span>
+                    <label htmlFor="client" className="block text-sm font-medium text-gray-700 mb-1">
+                      {paymentType === 'RECEIPT' ? '客户' : '供应商'} <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="text"
+                    <select
                       required
-                      value={formData.paymentNumber}
-                      onChange={e => setFormData({ ...formData, paymentNumber: e.target.value })}
+                      id="client"
+                      value={formData.clientId}
+                      onChange={e => handleClientChange(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                    >
+                      <option value="">选择{paymentType === 'RECEIPT' ? '客户' : '供应商'}</option>
+                      {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      金额 <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      step="0.01"
-                      min="0"
-                      value={formData.amount}
-                      onChange={e => setFormData({ ...formData, amount: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div></div>
-                </div>
-                <div>
-                  <label htmlFor="client" className="block text-sm font-medium text-gray-700 mb-1">
-                    {paymentType === 'RECEIPT' ? '客户' : '供应商'} <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    required
-                    id="client"
-                    value={formData.clientId}
-                    onChange={e => handleClientChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">选择{paymentType === 'RECEIPT' ? '客户' : '供应商'}</option>
-                    {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       关联合同
@@ -366,6 +337,32 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
+                      单号 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.paymentNumber}
+                      onChange={e => setFormData({ ...formData, paymentNumber: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      金额 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      step="0.01"
+                      min="0"
+                      value={formData.amount}
+                      onChange={e => setFormData({ ...formData, amount: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       支付方式 <span className="text-red-500">*</span>
                     </label>
                     <select
@@ -382,6 +379,8 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
                       <option value="OTHER">其他</option>
                     </select>
                   </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       状态
@@ -395,9 +394,6 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
                       <option value="UNPAID">未支付(预录)</option>
                     </select>
                   </div>
-                  <div></div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       日期 <span className="text-red-500">*</span>

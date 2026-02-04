@@ -237,7 +237,7 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
       const res = await fetch(`/api/contracts/${contractToSign.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...contractToSign, status: 'SIGNED' }),
+        body: JSON.stringify({ ...contractToSign, status: 'SIGNED', startDate: new Date().toISOString() }),
       });
       const data = await res.json();
       if (data.success) {
@@ -395,10 +395,23 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
                   <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">✕</button>
                 </div>
                   <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">合同编号 *</label>
                         <input type="text" required value={formData.contractNumber} onChange={(e) => setFormData({ ...formData, contractNumber: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">合同标题 *</label>
+                        <input type="text" required value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="client">{contractType === 'SALES' ? '客户' : '供应商'} *</label>
+                        <select required id="client" value={formData.clientId} onChange={(e) => setFormData({ ...formData, clientId: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                          <option value="">选择{contractType === 'SALES' ? '客户' : '供应商'}</option>
+                          {clients.map((client) => <option key={client.id} value={client.id}>{client.name}</option>)}
+                        </select>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">项目</label>
@@ -407,46 +420,30 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
                           {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
                         </select>
                       </div>
-                      <div></div>
-                      <div></div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">合同标题 *</label>
-                        <input type="text" required value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                        <label className="block text-sm font-medium text-gray-700 mb-1">金额 *</label>
+                        <input type="number" required step="0.01" min="0" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
                       </div>
                       <div>
-                        <label htmlFor="client">{contractType === 'SALES' ? '客户' : '供应商'} *</label>
-                        <select required id="client" value={formData.clientId} onChange={(e) => setFormData({ ...formData, clientId: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                          <option value="">选择{contractType === 'SALES' ? '客户' : '供应商'}</option>
-                          {clients.map((client) => <option key={client.id} value={client.id}>{client.name}</option>)}
+                        <label className="block text-sm font-medium text-gray-700 mb-1">状态</label>
+                        <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as any })} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                          <option value="SIGNED">已签署</option>
+                          <option value="UNSIGNED">未签署(预录)</option>
                         </select>
                       </div>
                     </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">金额 *</label>
-                      <input type="number" required step="0.01" min="0" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">开始日期 *</label>
+                        <input type="date" required value={formData.startDate} onChange={(e) => setFormData({ ...formData, startDate: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">结束日期 *</label>
+                        <input type="date" required value={formData.endDate} onChange={(e) => setFormData({ ...formData, endDate: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">状态</label>
-                      <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as any })} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                        <option value="SIGNED">已签署</option>
-                        <option value="UNSIGNED">未签署(预录)</option>
-                      </select>
-                    </div>
-                    <div></div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">开始日期 *</label>
-                      <input type="date" required value={formData.startDate} onChange={(e) => setFormData({ ...formData, startDate: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">结束日期 *</label>
-                      <input type="date" required value={formData.endDate} onChange={(e) => setFormData({ ...formData, endDate: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
-                    </div>
-                  </div>
                   <div className="flex justify-end gap-3 pt-4">
                     <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">取消</button>
                     <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">{editingContract ? '更新' : '创建'}</button>
@@ -483,43 +480,49 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
             />
             {/* 右侧抽屉 */}
             <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl z-50 overflow-y-auto animate-slide-in">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold">合同详情</h2>
+              <div className="p-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-bold">合同详情</h2>
                   <button 
                     onClick={() => setShowDetailPanel(false)} 
                     className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded transition-colors"
                     title="关闭"
                   >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <line x1="18" y1="6" x2="6" y2="18"></line>
                       <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
                   </button>
                 </div>
-                <div className="space-y-4">
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="text-sm text-gray-500 mb-1">合同编号</div>
-                    <div className="font-medium">{contractDetails.contractNumber}</div>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="text-sm text-gray-500 mb-1">合同标题</div>
+                <div className="space-y-3">
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="text-xs text-gray-500 mb-1">合同标题</div>
                     <div className="font-medium">{contractDetails.title}</div>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="text-sm text-gray-500 mb-1">合同金额</div>
-                    <div className="font-medium text-lg text-blue-600">¥{contractDetails.amount.toLocaleString()}</div>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="text-sm text-gray-500 mb-1">项目</div>
-                    <div className="font-medium">{contractDetails.project?.name || '-'}</div>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="text-sm text-gray-500 mb-1">{contractType === 'SALES' ? '客户' : '供应商'}</div>
-                    <div className="font-medium">{contractDetails.client?.name || '-'}</div>
+                    <div className="text-sm text-gray-500 mt-1">{contractDetails.contractNumber}</div>
                   </div>
                   
-                  <div className="border-t pt-4">
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">合同金额</div>
+                        <div className="font-semibold text-blue-600">¥{contractDetails.amount.toLocaleString()}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">项目</div>
+                        <div className="font-medium truncate">{contractDetails.project?.name || '-'}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">{contractType === 'SALES' ? '客户' : '供应商'}</div>
+                        <div className="font-medium truncate">{contractDetails.client?.name || '-'}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">日期</div>
+                        <div className="font-medium text-sm">{new Date(contractDetails.startDate).toLocaleDateString('zh-CN')} ~ {new Date(contractDetails.endDate).toLocaleDateString('zh-CN')}</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="border-t pt-3">
                     <h3 className="font-bold mb-3 flex items-center gap-2">
                       <span>关联发票</span>
                       <span className="text-sm font-normal text-gray-500">({contractDetails.invoices?.length || 0})</span>
@@ -554,64 +557,6 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
                     ) : (
                       <div className="text-gray-500 text-center py-4 bg-gray-50 rounded-lg">暂无发票</div>
                     )}
-                  </div>
-
-                  <div className="border-t pt-4">
-                    <h3 className="font-bold mb-3 flex items-center gap-2">
-                      <span>关联收付款</span>
-                      <span className="text-sm font-normal text-gray-500">({contractDetails.payments?.length || 0})</span>
-                    </h3>
-                    {contractDetails.payments && contractDetails.payments.length > 0 ? (
-                      <div className="space-y-2">
-                        {contractDetails.payments.map((payment: any) => (
-                          <div key={payment.id} className={`bg-white p-3 rounded-lg border-l-4 shadow-sm ${
-                            payment.status === 'PAID' 
-                              ? (payment.paymentType === 'RECEIPT' ? 'border-green-500' : 'border-red-500') 
-                              : 'border-gray-400'
-                          }`}>
-                            <div className="flex justify-between items-start mb-1">
-                              <div className="font-medium">{payment.paymentNumber}</div>
-                              <div className={`text-lg font-semibold ${
-                                payment.paymentType === 'RECEIPT' ? 'text-green-600' : 'text-red-600'
-                              }`}>
-                                ¥{payment.amount.toLocaleString()}
-                              </div>
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {new Date(payment.paymentDate).toLocaleDateString('zh-CN')}
-                              {payment.status === 'UNPAID' && <span className="ml-2 text-gray-400">(未支付)</span>}
-                            </div>
-                            <div className="text-sm">
-                              <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                payment.paymentType === 'RECEIPT' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                              }`}>
-                                {payment.paymentType === 'RECEIPT' ? '收款' : '付款'}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                        <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium">已结算</span>
-                            <span className="font-semibold text-green-600">¥{contractDetails.payments.filter((pay: any) => pay.status === 'PAID').reduce((sum: number, pay: any) => sum + pay.amount, 0).toLocaleString()}</span>
-                          </div>
-                          <div className="flex justify-between items-center mt-2">
-                            <span className="font-medium">未结算</span>
-                            <span className={`font-semibold ${contractDetails.amount > contractDetails.payments.filter((pay: any) => pay.status === 'PAID').reduce((sum: number, pay: any) => sum + pay.amount, 0) ? 'text-red-600' : 'text-green-600'}`}>
-                              ¥{(contractDetails.amount - contractDetails.payments.filter((pay: any) => pay.status === 'PAID').reduce((sum: number, pay: any) => sum + pay.amount, 0)).toLocaleString()}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-gray-500 text-center py-4 bg-gray-50 rounded-lg">暂无收付款</div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
                   </div>
 
                   <div className="border-t pt-4">

@@ -248,7 +248,7 @@ export default function InvoiceListPage({ invoiceType }: { invoiceType: 'RECEIVE
       const res = await fetch(`/api/invoices/${invoiceToIssue.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...invoiceToIssue, status: 'ISSUED' }),
+        body: JSON.stringify({ ...invoiceToIssue, status: 'ISSUED', invoiceDate: new Date().toISOString() }),
       });
       const data = await res.json();
       if (data.success) {
