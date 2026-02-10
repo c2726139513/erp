@@ -46,7 +46,12 @@ EdgeOne Pages 会自动检测 Next.js 项目，默认配置如下：
 - **构建命令**：`npm run build`
 - **输出目录**：`.next`
 
-如果需要自定义配置，可以创建 `edgeone.json` 文件（见下文）。
+**重要说明**：
+- 本项目的 `package.json` 已将 `build` 脚本修改为 `"npx prisma generate && next build"`
+- 这确保 Prisma Client 在 Next.js 构建之前生成，避免运行时错误
+- `edgeone.json` 配置文件已包含 `buildCommand` 设置
+
+如果需要自定义配置，可以修改 `edgeone.json` 文件（见下文）。
 
 ### 5. 配置环境变量
 

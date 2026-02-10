@@ -1,8 +1,9 @@
 {
-  "_comment": "EdgeOne Pages 配置文件（可选）",
-  "_note": "对于大多数 Next.js 项目，EdgeOne Pages 会自动检测并配置，通常不需要此文件。",
+  "_comment": "EdgeOne Pages 配置文件",
+  "_note": "确保 Prisma Client 在构建前生成",
   "_docs": "https://pages.edgeone.ai/zh/document/edgeone.json",
   "version": 2,
+  "buildCommand": "npm run build",
   "builds": [
     {
       "src": "package.json",
