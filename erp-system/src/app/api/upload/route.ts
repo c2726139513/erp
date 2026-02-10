@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, copyFile, access } from 'fs/promises';
 import path from 'path';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api-response';
-
-const prisma = new PrismaClient();
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 

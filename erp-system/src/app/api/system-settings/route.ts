@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth';
 import { successResponse, errorResponse, handleApiError } from '@/lib/api-response';
 import { copyFile, access, unlink } from 'fs/promises';
 import path from 'path';
-
-const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
   try {
