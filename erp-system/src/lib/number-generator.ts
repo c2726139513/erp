@@ -11,28 +11,46 @@ export async function generateNextNumber(type: 'invoice' | 'payment'): Promise<s
   const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
   const prefix = `${yearMonth}-`;
 
-  const model = type === 'invoice' ? prisma.invoice : prisma.payment;
-  const numberField = type === 'invoice' ? 'invoiceNumber' : 'paymentNumber';
+  let records: Array<{ number: string }> = [];
 
-  const records = await model.findMany({
-    where: {
-      [numberField]: {
-        startsWith: prefix,
+  if (type === 'invoice') {
+    const invoices = await prisma.invoice.findMany({
+      where: {
+        invoiceNumber: {
+          startsWith: prefix,
+        },
       },
-    },
-    select: {
-      [numberField]: true,
-    },
-    orderBy: {
-      [numberField]: 'desc',
-    },
-    take: 1,
-  });
+      select: {
+        invoiceNumber: true,
+      },
+      orderBy: {
+        invoiceNumber: 'desc',
+      },
+      take: 1,
+    });
+    records = invoices.map((inv) => ({ number: inv.invoiceNumber }));
+  } else {
+    const payments = await prisma.payment.findMany({
+      where: {
+        paymentNumber: {
+          startsWith: prefix,
+        },
+      },
+      select: {
+        paymentNumber: true,
+      },
+      orderBy: {
+        paymentNumber: 'desc',
+      },
+      take: 1,
+    });
+    records = payments.map((pay) => ({ number: pay.paymentNumber }));
+  }
 
   let nextNumber = 1;
 
   if (records.length > 0) {
-    const lastNumber = records[0][numberField];
+    const lastNumber = records[0].number;
     const lastSequence = parseInt(lastNumber.split('-')[1], 10);
     if (!isNaN(lastSequence)) {
       nextNumber = lastSequence + 1;
