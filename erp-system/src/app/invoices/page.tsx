@@ -206,10 +206,21 @@ export default function InvoicesPage() {
     }
   };
 
-  const openNewModal = () => {
+  const openNewModal = async () => {
     setEditingInvoice(null);
+    let nextInvoiceNumber = '';
+    try {
+      const res = await fetch('/api/invoices/next-number');
+      const data = await res.json();
+      if (data.success) {
+        nextInvoiceNumber = data.data.nextNumber;
+      }
+    } catch (error) {
+      console.error('Failed to fetch next invoice number:', error);
+    }
+
     setFormData({
-      invoiceNumber: '',
+      invoiceNumber: nextInvoiceNumber,
       contractId: '',
       clientId: '',
       amount: '',
