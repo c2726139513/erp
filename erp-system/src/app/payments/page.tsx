@@ -223,10 +223,21 @@ export default function PaymentsPage() {
     }
   };
 
-  const openNewModal = () => {
+  const openNewModal = async () => {
     setEditingPayment(null);
+    let nextPaymentNumber = '';
+    try {
+      const res = await fetch('/api/payments/next-number');
+      const data = await res.json();
+      if (data.success) {
+        nextPaymentNumber = data.data.nextNumber;
+      }
+    } catch (error) {
+      console.error('Failed to fetch next payment number:', error);
+    }
+
     setFormData({
-      paymentNumber: '',
+      paymentNumber: nextPaymentNumber,
       invoiceId: '',
       contractId: '',
       clientId: '',
