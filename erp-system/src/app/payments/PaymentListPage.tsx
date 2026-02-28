@@ -241,7 +241,34 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-72 px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <button onClick={() => { setEditingPayment(null); setFormData({ paymentNumber: '', invoiceId: '', contractId: '', clientId: '', amount: '', paymentType, paymentMethod: 'BANK_TRANSFER', paymentDate: new Date().toISOString().split('T')[0], status: 'PAID', bankAccount: '', referenceNumber: '', notes: '' }); setShowModal(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg">
+             <button onClick={async () => {
+               setEditingPayment(null);
+               let nextPaymentNumber = '';
+               try {
+                 const res = await fetch('/api/payments/next-number');
+                 const data = await res.json();
+                 if (data.success) {
+                   nextPaymentNumber = data.data.nextNumber;
+                 }
+               } catch (error) {
+                 console.error('Failed to fetch next payment number:', error);
+               }
+               setFormData({
+                 paymentNumber: nextPaymentNumber,
+                 invoiceId: '',
+                 contractId: '',
+                 clientId: '',
+                 amount: '',
+                 paymentType,
+                 paymentMethod: 'BANK_TRANSFER',
+                 paymentDate: new Date().toISOString().split('T')[0],
+                 status: 'PAID',
+                 bankAccount: '',
+                 referenceNumber: '',
+                 notes: ''
+               });
+               setShowModal(true);
+             }} className="bg-blue-600 text-white px-4 py-2 rounded-lg">
               新建{title}
             </button>
           </div>

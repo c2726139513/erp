@@ -293,7 +293,33 @@ export default function InvoiceListPage({ invoiceType }: { invoiceType: 'RECEIVE
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-72 px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <button onClick={() => { setEditingInvoice(null); setFormData({ invoiceNumber: '', contractId: '', clientId: '', amount: '', taxAmount: '0', taxRate: '13', status: 'ISSUED', invoiceType, invoiceDate: new Date().toISOString().split('T')[0], description: '', notes: '' }); setShowModal(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg">
+             <button onClick={async () => {
+               setEditingInvoice(null);
+               let nextInvoiceNumber = '';
+               try {
+                 const res = await fetch('/api/invoices/next-number');
+                 const data = await res.json();
+                 if (data.success) {
+                   nextInvoiceNumber = data.data.nextNumber;
+                 }
+               } catch (error) {
+                 console.error('Failed to fetch next invoice number:', error);
+               }
+               setFormData({
+                 invoiceNumber: nextInvoiceNumber,
+                 contractId: '',
+                 clientId: '',
+                 amount: '',
+                 taxAmount: '0',
+                 taxRate: '13',
+                 status: 'ISSUED',
+                 invoiceType,
+                 invoiceDate: new Date().toISOString().split('T')[0],
+                 description: '',
+                 notes: ''
+               });
+               setShowModal(true);
+             }} className="bg-blue-600 text-white px-4 py-2 rounded-lg">
               新建{invoiceType === 'ISSUED' ? '开具' : '取得'}发票
             </button>
           </div>
