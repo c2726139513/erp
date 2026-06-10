@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { Check, Edit, Trash2 } from 'lucide-react';
+import { Check, Edit, Trash2, Plus } from 'lucide-react';
 
 interface Client {
   id: string;
@@ -70,6 +71,7 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
     endDate: new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0],
   });
 
+  const router = useRouter();
   const title = contractType === 'SALES' ? '销售合同' : '采购合同';
   const buttonText = contractType === 'SALES' ? '新建销售合同' : '新建采购合同';
 
@@ -526,6 +528,16 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
                     <h3 className="font-bold mb-3 flex items-center gap-2">
                       <span>关联发票</span>
                       <span className="text-sm font-normal text-gray-500">({contractDetails.invoices?.length || 0})</span>
+                      <button
+                        onClick={() => {
+                          const path = contractDetails.contractType === 'SALES' ? '/invoices/issued' : '/invoices/received';
+                          router.push(`${path}?contractId=${contractDetails.id}&clientId=${contractDetails.client?.id || ''}`);
+                        }}
+                        className="ml-auto flex items-center gap-1 text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                      >
+                        <Plus size={12} />
+                        新增
+                      </button>
                     </h3>
                     {contractDetails.invoices && contractDetails.invoices.length > 0 ? (
                       <div className="space-y-2">
@@ -563,6 +575,16 @@ export default function ContractListPage({ contractType }: { contractType: 'SALE
                     <h3 className="font-bold mb-3 flex items-center gap-2">
                       <span>关联收付款</span>
                       <span className="text-sm font-normal text-gray-500">({contractDetails.payments?.length || 0})</span>
+                      <button
+                        onClick={() => {
+                          const path = contractDetails.contractType === 'SALES' ? '/payments/receipts' : '/payments/expenses';
+                          router.push(`${path}?contractId=${contractDetails.id}&clientId=${contractDetails.client?.id || ''}`);
+                        }}
+                        className="ml-auto flex items-center gap-1 text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                      >
+                        <Plus size={12} />
+                        新增
+                      </button>
                     </h3>
                     {contractDetails.payments && contractDetails.payments.length > 0 ? (
                       <div className="space-y-2">
