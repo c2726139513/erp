@@ -80,7 +80,7 @@ export default function InitAdminPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">欢迎使用 ERP 系统</h1>
+          <h1 className="text-3xl font-bold mb-2">欢迎使用</h1>
           <p className="text-gray-600">请创建管理员账户以开始使用</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-6">
