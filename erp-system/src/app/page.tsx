@@ -127,7 +127,7 @@ export default function HomePage() {
   return (
     <DashboardLayout>
       <div>
-          <h1 className="text-2xl md:text-3xl font-bold mb-6">欢迎使用 ERP 系统</h1>
+          <h1 className="text-2xl md:text-3xl font-bold mb-6">欢迎使用</h1>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 mb-8">
             {(hasCustomerClients || hasSupplierClients) && (
               <div className="bg-white rounded-lg shadow p-4 md:p-6">
