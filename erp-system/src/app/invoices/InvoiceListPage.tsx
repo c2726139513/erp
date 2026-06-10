@@ -53,6 +53,7 @@ export default function InvoiceListPage({ invoiceType }: { invoiceType: 'RECEIVE
   const [endDate, setEndDate] = useState('');
   const [showConfirmIssueModal, setShowConfirmIssueModal] = useState(false);
   const [invoiceToIssue, setInvoiceToIssue] = useState<Invoice | null>(null);
+  const [prefillData, setPrefillData] = useState<{clientId: string; contractId: string} | null>(null);
   const [formData, setFormData] = useState({
     invoiceNumber: '',
     contractId: '',
@@ -79,7 +80,39 @@ export default function InvoiceListPage({ invoiceType }: { invoiceType: 'RECEIVE
   useEffect(() => {
     fetchInvoices();
     fetchClients();
+
+    const params = new URLSearchParams(window.location.search);
+    const urlClientId = params.get('clientId');
+    const urlContractId = params.get('contractId');
+    if (urlClientId && urlContractId) {
+      setPrefillData({ clientId: urlClientId, contractId: urlContractId });
+    }
   }, [invoiceType, searchQuery, startDate, endDate]);
+
+  useEffect(() => {
+    if (prefillData && clients.length > 0) {
+      setEditingInvoice(null);
+      fetch('/api/invoices/next-number').then(res => res.json()).then(data => {
+        const nextInvoiceNumber = data.success ? data.data.nextNumber : '';
+        setFormData({
+          invoiceNumber: nextInvoiceNumber,
+          contractId: prefillData.contractId,
+          clientId: prefillData.clientId,
+          amount: '',
+          taxAmount: '0',
+          taxRate: '13',
+          status: 'ISSUED',
+          invoiceType,
+          invoiceDate: new Date().toISOString().split('T')[0],
+          description: '',
+          notes: '',
+        });
+        fetchAvailableContracts(prefillData.clientId);
+        setShowModal(true);
+        setPrefillData(null);
+      });
+    }
+  }, [prefillData, clients]);
 
   const fetchInvoices = async () => {
     const searchParam = searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : '';

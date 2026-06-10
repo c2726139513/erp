@@ -57,6 +57,7 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
   const [endDate, setEndDate] = useState('');
   const [showConfirmPayModal, setShowConfirmPayModal] = useState(false);
   const [paymentToPay, setPaymentToPay] = useState<Payment | null>(null);
+  const [prefillData, setPrefillData] = useState<{clientId: string; contractId: string} | null>(null);
   const [formData, setFormData] = useState({
     paymentNumber: '', invoiceId: '', contractId: '', clientId: '', amount: '', paymentType, paymentMethod: 'BANK_TRANSFER' as const, paymentDate: new Date().toISOString().split('T')[0], status: 'PAID' as 'UNPAID' | 'PAID', bankAccount: '', referenceNumber: '', notes: '',
   });
@@ -66,7 +67,41 @@ export default function PaymentListPage({ paymentType }: { paymentType: 'RECEIPT
   useEffect(() => {
     fetchPayments();
     fetchClients();
+
+    const params = new URLSearchParams(window.location.search);
+    const urlClientId = params.get('clientId');
+    const urlContractId = params.get('contractId');
+    if (urlClientId && urlContractId) {
+      setPrefillData({ clientId: urlClientId, contractId: urlContractId });
+    }
   }, [paymentType, searchQuery, startDate, endDate]);
+
+  useEffect(() => {
+    if (prefillData && clients.length > 0) {
+      setEditingPayment(null);
+      fetch('/api/payments/next-number').then(res => res.json()).then(data => {
+        const nextPaymentNumber = data.success ? data.data.nextNumber : '';
+        setFormData({
+          paymentNumber: nextPaymentNumber,
+          invoiceId: '',
+          contractId: prefillData.contractId,
+          clientId: prefillData.clientId,
+          amount: '',
+          paymentType,
+          paymentMethod: 'BANK_TRANSFER',
+          paymentDate: new Date().toISOString().split('T')[0],
+          status: 'PAID',
+          bankAccount: '',
+          referenceNumber: '',
+          notes: '',
+        });
+        fetchAvailableContracts(prefillData.clientId);
+        fetchInvoices(prefillData.clientId);
+        setShowModal(true);
+        setPrefillData(null);
+      });
+    }
+  }, [prefillData, clients]);
 
   const fetchPayments = async () => {
     const searchParam = searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : '';
